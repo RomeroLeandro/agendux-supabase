@@ -1,11 +1,19 @@
 import {
   AlertTriangle,
+  BarChart2,
   BrainCircuit,
+  Calendar,
+  CheckSquare,
   CircleCheckBig,
   CircleDot,
+  Cog,
+  Link2,
   MessageSquare,
+  RotateCw,
   Scissors,
+  Smartphone,
   Stethoscope,
+  Users,
   Wrench,
 } from "lucide-react";
 
@@ -106,3 +114,74 @@ export const howItWorksData = {
     },
   ],
 };
+
+export const featuresData = [
+  {
+    icon: MessageSquare,
+    title: "Recordatorios por WhatsApp",
+    description:
+      "Envía recordatorios automáticos para que tus clientes no olviden su cita.",
+    colors:
+      "bg-color-green/50 dark:bg-color-green/50 text-color-green dark:text-color-green",
+  },
+  {
+    icon: CheckSquare,
+    title: "Confirmación Interactiva",
+    description:
+      "Tus clientes pueden confirmar o cancelar su turno directamente desde WhatsApp.",
+    colors: "bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-400",
+  },
+  {
+    icon: Calendar,
+    title: "Integración con Google Calendar",
+    description:
+      "Sincroniza tu agenda de Agendux con tu calendario personal para evitar duplicados.",
+    colors:
+      "bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400",
+  },
+  {
+    icon: Link2,
+    title: "Link de Autoagenda Personal",
+    description:
+      "Comparte un link único para que tus clientes agenden por sí mismos, 24/7.",
+    colors:
+      "bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-400",
+  },
+  {
+    icon: RotateCw,
+    title: "Reprogramación Fácil",
+    description:
+      "Tus clientes pueden cancelar o reprogramar sus citas fácilmente con un solo clic.",
+    colors:
+      "bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-400",
+  },
+  {
+    icon: BarChart2,
+    title: "Dashboard de Gestión",
+    description:
+      "Visualiza y gestiona todas tus citas en un calendario centralizado.",
+    colors: "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400",
+  },
+  {
+    icon: Cog,
+    title: "Configuración Flexible",
+    description:
+      "Define tus servicios, precios y horarios de trabajo con total libertad.",
+    colors:
+      "bg-violet-100 dark:bg-violet-900/50 text-violet-700 dark:text-violet-400",
+  },
+  {
+    icon: Users,
+    title: "Gestión de Clientes",
+    description:
+      "Visualiza un historial de todos tus clientes y sus citas pasadas en un solo lugar.",
+    colors: "bg-pink-100 dark:bg-pink-900/50 text-pink-700 dark:text-pink-400",
+  },
+  {
+    icon: Smartphone,
+    title: "Diseño Responsivo",
+    description:
+      "Gestiona tu agenda desde cualquier dispositivo: móvil, tablet o computadora.",
+    colors: "bg-cyan-100 dark:bg-cyan-900/50 text-cyan-700 dark:text-cyan-400",
+  },
+];
