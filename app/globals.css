@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @plugin 'tailwindcss-animate';
 
@@ -64,57 +64,63 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
+    /* Tema claro basado en tus colores */
+    --background: 0 0% 100%; /* --color-bg-light: #ffffff */
+    --foreground: 220 13% 9%; /* --color-font-primary-light: #111827 */
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
+    --card-foreground: 220 13% 9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
+    --popover-foreground: 220 13% 9%;
+    --primary: 227 69% 53%; /* --color-blue-primary: #3161dd */
     --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
+    --secondary: 0 0% 34%; /* --color-font-secondary-light: #575757 */
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 34%;
+    --accent: 142 71% 45%; /* --color-color-green: #22c55e */
     --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 79% 73%; /* --color-color-red: #f77171 */
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    --border: 0 0% 89%;
+    --input: 0 0% 89%;
+    --ring: 227 69% 53%; /* color del primary para focus */
+    --chart-1: 227 69% 53%; /* blue primary */
+    --chart-2: 142 71% 45%; /* green */
+    --chart-3: 224 76% 48%; /* link color */
+    --chart-4: 46 95% 53%; /* yellow */
+    --chart-5: 217 100% 66%; /* blue secondary */
     --radius: 0.5rem;
   }
+
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
+    /* Tema oscuro basado en tus colores */
+    --background: 0 0% 12%; /* --color-bg-dark: #1e1e1e */
+    --foreground: 220 14% 96%; /* --color-font-primary-dark: #f3f4f6 */
+    --card: 240 4% 16%; /* --color-bg-dark-secondary: #28282a */
+    --card-foreground: 220 14% 96%;
+    --popover: 240 4% 16%;
+    --popover-foreground: 220 14% 96%;
+    --primary: 227 69% 53%; /* --color-blue-primary: #3161dd */
     --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
+    --secondary: 240 4% 16%;
+    --secondary-foreground: 0 0% 66%; /* --color-font-secondary-dark: #a9a9a9 */
+    --muted: 240 4% 16%;
+    --muted-foreground: 0 0% 66%;
+    --accent: 142 71% 45%; /* --color-color-green: #22c55e */
     --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 79% 73%; /* --color-color-red: #f77171 */
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    --border: 240 4% 16%;
+    --input: 240 4% 16%;
+    --ring: 220 14% 96%;
+    --chart-1: 227 69% 53%; /* blue primary */
+    --chart-2: 142 71% 45%; /* green */
+    --chart-3: 224 76% 48%; /* link color */
+    --chart-4: 46 95% 53%; /* yellow */
+    --chart-5: 217 100% 66%; /* blue secondary */
+
+    /* Variables adicionales del footer */
+    --footer: 225 30% 18%; /* --color-footer: #1f2437 */
   }
 }
 
