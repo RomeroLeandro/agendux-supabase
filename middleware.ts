@@ -5,7 +5,8 @@ export async function middleware(request: NextRequest) {
   // Permitir rutas de reset sin middleware de autenticación
   if (
     request.nextUrl.pathname.startsWith("/auth/reset-password") ||
-    request.nextUrl.pathname.startsWith("/auth/forgot-password")
+    request.nextUrl.pathname.startsWith("/auth/forgot-password") ||
+    request.nextUrl.pathname.startsWith("/auth/callback")
   ) {
     return NextResponse.next();
   }

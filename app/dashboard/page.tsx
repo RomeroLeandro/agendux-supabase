@@ -7,6 +7,9 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Calendar, Clock, Plus, Settings } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
+import Link from "next/link";
+import Image from "next/image";
+import Logo from "@/assets/Logo.webp";
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
@@ -53,16 +56,14 @@ export default function Dashboard() {
       {/* Header */}
       <header className="bg-card border-b border-border px-6 py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <Typography variant="body-md" className="text-white font-bold">
-                A
-              </Typography>
-            </div>
-            <Typography variant="heading-md" className="text-primary">
-              genduX
-            </Typography>
-          </div>
+          <Link href="/">
+          <Image
+            src={Logo}
+            alt="Logo de Agendux"
+            className="h-8 w-auto"
+            priority
+          />
+        </Link>
 
           <div className="flex items-center space-x-4">
             <Typography variant="body-sm" className="text-muted-foreground">

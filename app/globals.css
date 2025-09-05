@@ -4,29 +4,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@font-face {
-  font-family: "Poppins";
-  src: url("/fonts/poppins-Regular.woff2") format("woff2");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "adineue PRO Bold";
-  src: url("/fonts/adineue-PRO-Bold.woff2") format("woff2");
-  font-weight: bold;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "adineue PRO";
-  src: url("/fonts/adineue-PRO.woff2") format("woff2");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
 @theme {
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
@@ -66,9 +43,9 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
 
-  --font-adineue: "adineue PRO", sans-serif;
-  --font-adineue-bold: "adineue PRO Bold", sans-serif;
-  --font-poppins: "Poppins", sans-serif;
+  --font-poppins: var(--font-poppins);
+  --font-adineue: var(--font-adineue);
+  --font-sans: var(--font-poppins);
 }
 
 @layer base {
