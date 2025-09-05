@@ -50,7 +50,7 @@ export const Typography: React.FC<TypographyProps> = ({
     "body-sm": "text-sm text-muted-foreground",
     caption: "font-semibold text-sm text-primary",
     badge:
-      "inline-block px-3 py-1 font-semibold text-lg uppercase tracking-wider rounded-full bg-primary/20 text-primary",
+      "inline-block px-3 py-1 font-semibold text-lg uppercase tracking-wider rounded-full bg-primary/20 text-primary dark:bg-white",
   };
 
   const Component = as || variantTagMap[variant];
