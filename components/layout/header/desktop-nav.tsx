@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { navLinks } from "@/config/site";
-// import { AuthButtons } from "./AuthButtons";
+import { AuthButton } from "@/components/auth-button";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -78,7 +78,7 @@ export function DesktopNav() {
       </div>
       <div className="flex items-center gap-4">
         <ThemeSwitcher />
-        {/* <AuthButtons /> */}
+        <AuthButton />
       </div>
     </nav>
   );

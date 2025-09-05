@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { navLinks } from "@/config/site";
-// import { AuthButtons } from "./AuthButtons";
+import { AuthButton } from "@/components/auth-button";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 
 interface MobileNavProps {
@@ -25,7 +25,7 @@ export function MobileNav({ onLinkClick }: MobileNavProps) {
         ))}
         <div className="mt-8 flex flex-col items-center gap-6">
           <ThemeSwitcher />
-          {/* <AuthButtons /> */}
+          <AuthButton />
         </div>
       </div>
     </div>

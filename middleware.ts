@@ -1,7 +1,16 @@
 import { updateSession } from "@/lib/supabase/middleware";
-import { type NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
+  // Permitir rutas de reset sin middleware de autenticación
+  if (
+    request.nextUrl.pathname.startsWith("/auth/reset-password") ||
+    request.nextUrl.pathname.startsWith("/auth/forgot-password")
+  ) {
+    return NextResponse.next();
+  }
+
+  // Para todas las demás rutas, usar el middleware normal
   return await updateSession(request);
 }
 

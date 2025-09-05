@@ -1,105 +1,215 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Typography } from "@/components/ui/typography";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useState } from "react";
+import { Mail, ArrowLeft } from "lucide-react";
 
-export function ForgotPasswordForm({
-  className,
-  ...props
-}: React.ComponentPropsWithoutRef<"div">) {
+export function ForgotPasswordForm({}: React.ComponentPropsWithoutRef<"div">) {
   const [email, setEmail] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleForgotPassword = async (e: React.FormEvent) => {
+  const translateError = (error: string) => {
+    const errorTranslations: { [key: string]: string } = {
+      "Unable to validate email address: invalid format":
+        "No se puede validar la dirección de email: formato inválido",
+      "Invalid email": "Email inválido",
+      "Email rate limit exceeded":
+        "Límite de emails excedido, intenta más tarde",
+      "Too many requests": "Demasiadas solicitudes, intenta más tarde",
+      "User not found": "Usuario no encontrado",
+      "Database connection error": "Error de conexión a la base de datos",
+    };
+
+    return errorTranslations[error] || error;
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    const supabase = createClient();
     setIsLoading(true);
     setError(null);
 
+    const supabase = createClient();
+
     try {
-      // The url which will be included in the email. This URL needs to be configured in your redirect URLs in the Supabase dashboard at https://supabase.com/dashboard/project/_/auth/url-configuration
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/update-password`,
+        redirectTo: `${window.location.origin}/auth/reset-password`,
       });
+
       if (error) throw error;
-      setSuccess(true);
+
+      setIsSuccess(true);
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
+      const errorMessage =
+        error instanceof Error ? error.message : "Ocurrió un error";
+      setError(translateError(errorMessage));
     } finally {
       setIsLoading(false);
     }
   };
 
-  return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
-      {success ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl">Check Your Email</CardTitle>
-            <CardDescription>Password reset instructions sent</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              If you registered using your email and password, you will receive
-              a password reset email.
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl">Reset Your Password</CardTitle>
-            <CardDescription>
-              Type in your email and we&apos;ll send you a link to reset your
-              password
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleForgotPassword}>
-              <div className="flex flex-col gap-6">
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="m@example.com"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-                {error && <p className="text-sm text-red-500">{error}</p>}
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Sending..." : "Send reset email"}
-                </Button>
-              </div>
-              <div className="mt-4 text-center text-sm">
-                Already have an account?{" "}
-                <Link
-                  href="/auth/login"
-                  className="underline underline-offset-4"
+  if (isSuccess) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="w-full max-w-md space-y-6">
+          {/* Logo */}
+          <div className="text-center space-y-2">
+            <div className="flex justify-center items-center mb-4">
+              <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mr-3">
+                <Typography
+                  variant="heading-md"
+                  className="text-white font-bold"
                 >
-                  Login
-                </Link>
+                  A
+                </Typography>
               </div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
+              <Typography variant="heading-lg" className="text-primary">
+                genduX
+              </Typography>
+            </div>
+            <Typography variant="heading-lg" className="text-foreground">
+              Correo enviado
+            </Typography>
+            <Typography variant="body-md" className="text-muted-foreground">
+              Revisa tu bandeja de entrada y haz clic en el enlace para
+              restablecer tu contraseña
+            </Typography>
+          </div>
+
+          {/* Success card */}
+          <div className="bg-card border border-border rounded-2xl p-6 shadow-lg space-y-6">
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto">
+                <Mail className="h-8 w-8 text-accent" />
+              </div>
+
+              <div className="space-y-2">
+                <Typography variant="heading-md" className="text-foreground">
+                  Enlace enviado a tu email
+                </Typography>
+                <Typography variant="body-md" className="text-muted-foreground">
+                  Hemos enviado un enlace de restablecimiento a:
+                </Typography>
+                <Typography
+                  variant="body-md"
+                  className="text-primary font-medium"
+                >
+                  {email}
+                </Typography>
+              </div>
+
+              <div className="p-4 bg-muted/30 rounded-lg">
+                <Typography variant="body-sm" className="text-muted-foreground">
+                  Si no recibes el correo en unos minutos, revisa tu carpeta de
+                  spam o intenta nuevamente.
+                </Typography>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Button
+                onClick={() => {
+                  setIsSuccess(false);
+                  setEmail("");
+                }}
+                className="w-full"
+              >
+                Enviar otro enlace
+              </Button>
+
+              <Link href="/auth/login" className="block">
+                <Button className="w-full">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Volver al inicio de sesión
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="w-full max-w-md space-y-6">
+        {/* Logo */}
+        <div className="text-center space-y-2">
+          <div className="flex justify-center items-center mb-4">
+            <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mr-3">
+              <Typography variant="heading-md" className="text-white font-bold">
+                A
+              </Typography>
+            </div>
+            <Typography variant="heading-lg" className="text-primary">
+              genduX
+            </Typography>
+          </div>
+          <Typography variant="heading-lg" className="text-foreground">
+            ¿Olvidaste tu contraseña?
+          </Typography>
+          <Typography variant="body-md" className="text-muted-foreground">
+            Ingresa tu email y te enviaremos un enlace para restablecerla
+          </Typography>
+        </div>
+
+        {/* Formulario */}
+        <div className="bg-card border border-border rounded-2xl p-6 shadow-lg space-y-6">
+          <form onSubmit={handleResetPassword} className="space-y-6">
+            {/* Email */}
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-foreground">
+                Correo Electrónico
+              </Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="tu@email.com"
+                  className="pl-10"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Error message */}
+            {error && (
+              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                <Typography variant="body-sm" className="text-destructive">
+                  {error}
+                </Typography>
+              </div>
+            )}
+
+            {/* Reset button */}
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading
+                ? "Enviando enlace..."
+                : "Enviar enlace de restablecimiento"}
+            </Button>
+          </form>
+
+          {/* Back to login */}
+          <div className="text-center">
+            <Link
+              href="/auth/login"
+              className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Volver al inicio de sesión
+            </Link>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

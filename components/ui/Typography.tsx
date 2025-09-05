@@ -40,7 +40,7 @@ export const Typography: React.FC<TypographyProps> = ({
 
   const variantStyleMap: Record<TypographyVariant, string> = {
     display: "text-5xl md:text-7xl leading-tight text-foreground",
-    "heading-xl": "font-display font-bold text-4xl md:text-5xl text-foreground",
+    "heading-xl": "font-bold text-4xl md:text-5xl text-foreground",
     "heading-lg": "font-bold text-3xl md:text-4xl text-foreground",
     "heading-md": "font-semibold text-xl text-foreground",
     "heading-sm":
