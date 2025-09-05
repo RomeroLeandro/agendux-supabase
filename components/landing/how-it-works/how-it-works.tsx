@@ -9,10 +9,7 @@ import Phones from "@/assets/Phones.webp"; // Asegúrate de que la ruta sea corr
 export function HowItWorksSection() {
   const { tag, title, subtitle, steps } = howItWorksData;
   return (
-    <section
-      id="como-funciona"
-      className="py-16 md:py-24 "
-    >
+    <section id="como-funciona" className="py-16 md:py-24 ">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto">
           <Typography variant="badge">{tag}</Typography>

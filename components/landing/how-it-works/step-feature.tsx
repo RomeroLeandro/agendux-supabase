@@ -19,7 +19,11 @@ export function StepFeature({
         <Icon className={iconColor || "text-primary"} />
       </div>
       <div>
-        <Typography as="h4" variant="body-lg" className="font-bold text-foreground">
+        <Typography
+          as="h4"
+          variant="body-lg"
+          className="font-bold text-foreground"
+        >
           {title}
         </Typography>
         <Typography variant="body-md" className="mt-1 text-muted-foreground">

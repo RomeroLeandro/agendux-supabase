@@ -23,18 +23,28 @@ export function PricingCard({ plan, billingCycle }: PricingCardProps) {
       variant={isFeatured ? "featured" : "default"}
       className="flex flex-col p-8"
     >
-      <Typography as="h3" variant="heading-md" className="text-left text-foreground">
+      <Typography
+        as="h3"
+        variant="heading-md"
+        className="text-left text-foreground"
+      >
         {plan.name}
       </Typography>
 
       <div className="my-6 text-left">
-        <span className="text-6xl font-adineue font-bold text-foreground">USD {price}</span>
+        <span className="text-6xl font-adineue font-bold text-foreground">
+          USD {price}
+        </span>
         <span className="text-3xl font-adineue text-muted-foreground">
           {billingPeriod}
         </span>
       </div>
 
-      <Typography as="p" variant="body-md" className="text-left text-muted-foreground">
+      <Typography
+        as="p"
+        variant="body-md"
+        className="text-left text-muted-foreground"
+      >
         {plan.description}
       </Typography>
 
@@ -48,7 +58,11 @@ export function PricingCard({ plan, billingCycle }: PricingCardProps) {
           </li>
         ))}
       </ul>
-      <Typography as="span" variant="body-sm" className="text-left pb-4 text-muted-foreground">
+      <Typography
+        as="span"
+        variant="body-sm"
+        className="text-left pb-4 text-muted-foreground"
+      >
         Costo por recordatorio excedente: USD {plan.cost_per_extra_reminder}
       </Typography>
 

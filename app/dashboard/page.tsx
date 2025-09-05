@@ -57,13 +57,13 @@ export default function Dashboard() {
       <header className="bg-card border-b border-border px-6 py-4">
         <div className="flex items-center justify-between">
           <Link href="/">
-          <Image
-            src={Logo}
-            alt="Logo de Agendux"
-            className="h-8 w-auto"
-            priority
-          />
-        </Link>
+            <Image
+              src={Logo}
+              alt="Logo de Agendux"
+              className="h-8 w-auto"
+              priority
+            />
+          </Link>
 
           <div className="flex items-center space-x-4">
             <Typography variant="body-sm" className="text-muted-foreground">
