@@ -10,7 +10,7 @@ export const poppins = Poppins({
 export const adineue = localFont({
   src: [
     {
-      path: "../public/fonts/AdineuePRO-Regular.woff2",
+      path: "/fonts/adineue-PRO-Bold.woff2",
       weight: "700",
       style: "normal",
     },
