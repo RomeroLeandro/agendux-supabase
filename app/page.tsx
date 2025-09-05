@@ -6,6 +6,7 @@ import { HeroSection } from "@/components/landing/hero/hero-section";
 import { HowItWorksSection } from "@/components/landing/how-it-works/how-it-works";
 import { FeaturesSection } from "@/components/landing/feature/feature-section";
 import { BenefitsSection } from "@/components/landing/benefit/benefit-section";
+import { AutoSchedulingSection } from "@/components/landing/auto-scheduling/auto-scheduling-section";
 
 export default function Home() {
   return (
@@ -15,6 +16,7 @@ export default function Home() {
       <HowItWorksSection />
       <FeaturesSection />
       <BenefitsSection />
+      <AutoSchedulingSection />
     </main>
   );
 }

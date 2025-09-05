@@ -9,10 +9,13 @@ import {
   CircleDot,
   Clock,
   Cog,
+  Link,
   Link2,
   MessageSquare,
+  PackageCheck,
   RotateCw,
   Scissors,
+  Settings2,
   Smartphone,
   Stethoscope,
   TrendingUp,
@@ -220,5 +223,32 @@ export const benefitsData = [
       "Con la integración de Google Calendar, tu disponibilidad se actualiza en tiempo real, evitando que te agenden turnos cuando ya estás ocupado.",
     colors:
       "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400",
+  },
+];
+
+export const schedulingFeatures = [
+  {
+    icon: Link,
+    title: "Link de Autoagenda",
+    description:
+      "Crea un link personalizado para que tus clientes elijan su cita de manera independiente, sin llamadas ni mensajes.",
+    colors:
+      "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-400",
+  },
+  {
+    icon: Settings2,
+    title: "Configuración a tu medida",
+    description:
+      "Define tu disponibilidad, servicios, duración y precios. Personaliza cada aspecto para adaptarlo a tu negocio.",
+    colors:
+      "bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-400",
+  },
+  {
+    icon: PackageCheck,
+    title: "Todo integrado",
+    description:
+      "Autoagenda viene incluido en todos los planes de Agendux. Las citas se sincronizan automáticamente con tu calendario.",
+    colors:
+      "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400",
   },
 ];
