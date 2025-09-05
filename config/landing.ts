@@ -252,3 +252,31 @@ export const schedulingFeatures = [
       "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400",
   },
 ];
+
+export const faqData = [
+  {
+    question: "¿Cómo funcionan los pagos?",
+    answer:
+      "Agendux es una suscripción, puedes pagar mensual o anualmente. Nuestros planes se adaptan a la cantidad de citas que tienes al mes. Puedes cambiar de plan en cualquier momento según tus necesidades.",
+  },
+  {
+    question: "¿Qué pasa si no me gusta Agendux?",
+    answer:
+      "Puedes solicitar un reembolso en los primeros 30 días de tu suscripción. Ofrecemos una garantía de satisfacción completa para que puedas probar nuestra plataforma sin riesgos.",
+  },
+  {
+    question: "¿Qué app de calendarios soporta Agendux?",
+    answer:
+      "Tienes dos opciones: puedes utilizar el Calendario que viene dentro de Agendux, o puedes conectar tu cuenta de Google Calendar. La sincronización es bidireccional y en tiempo real.",
+  },
+  {
+    question: "¿Cómo funciona la integración de WhatsApp?",
+    answer:
+      "Agendux utiliza la API oficial de WhatsApp Business para enviar mensajes de confirmación y recordatorios a tus clientes. Los mensajes son personalizables y se envían automáticamente.",
+  },
+  {
+    question: "¿Tienes más preguntas?",
+    answer:
+      "¡Claro! Nuestro equipo de soporte está disponible por WhatsApp para resolver cualquier duda adicional que tengas sobre nuestra plataforma.",
+  },
+];
