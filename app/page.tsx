@@ -5,6 +5,7 @@ import { ForWhomSection } from "@/components/landing/for-whom/for-whom-section";
 import { HeroSection } from "@/components/landing/hero/hero-section";
 import { HowItWorksSection } from "@/components/landing/how-it-works/how-it-works";
 import { FeaturesSection } from "@/components/landing/feature/feature-section";
+import { BenefitsSection } from "@/components/landing/benefit/benefit-section";
 
 export default function Home() {
   return (
@@ -13,6 +14,7 @@ export default function Home() {
       <ForWhomSection />
       <HowItWorksSection />
       <FeaturesSection />
+      <BenefitsSection />
     </main>
   );
 }

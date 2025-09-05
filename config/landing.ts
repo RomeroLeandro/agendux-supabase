@@ -3,9 +3,11 @@ import {
   BarChart2,
   BrainCircuit,
   Calendar,
+  CalendarCheck,
   CheckSquare,
   CircleCheckBig,
   CircleDot,
+  Clock,
   Cog,
   Link2,
   MessageSquare,
@@ -13,6 +15,7 @@ import {
   Scissors,
   Smartphone,
   Stethoscope,
+  TrendingUp,
   Users,
   Wrench,
 } from "lucide-react";
@@ -183,5 +186,39 @@ export const featuresData = [
     description:
       "Gestiona tu agenda desde cualquier dispositivo: móvil, tablet o computadora.",
     colors: "bg-cyan-100 dark:bg-cyan-900/50 text-cyan-700 dark:text-cyan-400",
+  },
+];
+
+export const benefitsData = [
+  {
+    icon: TrendingUp,
+    title: "Más ingresos y menos ausentismo",
+    description:
+      "Por cada cliente que olvida su cita pierdes tiempo y dinero. Agendux se encarga de confirmar y recordar tus citas.",
+    colors:
+      "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-400",
+  },
+  {
+    icon: Clock,
+    title: "Ahorra tiempo automatizando mensajes",
+    description:
+      "¿Actualmente confirmas a tus clientes manualmente? ¿Los llamas o les escribes uno a uno? Deja que Agendux haga eso por ti.",
+    colors:
+      "bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-400",
+  },
+  {
+    icon: MessageSquare,
+    title: "WhatsApp: el canal más efectivo",
+    description:
+      "Los emails y SMS no son efectivos, y las llamadas son intrusivas. Agendux usa WhatsApp para garantizar que tus clientes vean el mensaje y confirmen la cita.",
+    colors: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/50 dark:text-cyan-400",
+  },
+  {
+    icon: CalendarCheck,
+    title: "Tu agenda siempre sincronizada",
+    description:
+      "Con la integración de Google Calendar, tu disponibilidad se actualiza en tiempo real, evitando que te agenden turnos cuando ya estás ocupado.",
+    colors:
+      "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400",
   },
 ];
