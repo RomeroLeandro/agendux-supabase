@@ -12,7 +12,7 @@ export function Header() {
   const toggleMenu = () => setIsMenuOpen((prev) => !prev);
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-bg-light dark:bg-bg-dark transition-colors duration-300 border-b border-gray-200 dark:border-gray-900">
+    <header className="sticky top-0 z-50 w-full bg-background transition-colors duration-300 border-b border-gray-200 dark:border-gray-900">
       <div className="container mx-auto flex h-20 items-center justify-between gap-8 px-4">
         <Link href="/">
           <Image

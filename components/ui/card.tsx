@@ -17,9 +17,9 @@ export const Card: React.FC<CardProps> = ({
 }) => {
   const variantStyles = {
     default:
-      "bg-bg-light dark:bg-bg-dark-secondary transition-colors duration-300 border border-gray-200 dark:border-gray-800 shadow-md",
+      "bg-background dark:bg-card transition-colors duration-300 border border-gray-200 dark:border-gray-800 shadow-md",
     featured:
-      "bg-bg-light dark:bg-bg-dark-secondary transition-colors duration-300 border border-4 border-primary shadow-md ",
+      "bg-background dark:bg-card transition-colors duration-300 border border-4 border-primary shadow-md ",
   };
 
   const baseStyles = "rounded-2xl p-6 md:p-8 h-full";

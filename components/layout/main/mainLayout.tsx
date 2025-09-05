@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { Header } from "@/components/layout/header/header";
+import { Footer } from "@/components/layout/footer/footer";
 
 export default function ConditionalHeader({
   children,
@@ -27,6 +28,7 @@ export default function ConditionalHeader({
     <>
       {!shouldHideHeader && <Header />}
       {children}
+      {!shouldHideHeader && <Footer />}
     </>
   );
 }

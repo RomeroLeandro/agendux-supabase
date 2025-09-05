@@ -18,7 +18,7 @@ export function HeroSection() {
         <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16">
           <div className="text-center md:text-left">
             <SyncPill />
-            <Typography variant="display" as="h1" className="font-adineue">
+            <Typography variant="display" as="h1" className="font-adineue-bold">
               Gestiona tu agenda
               <span className="bg-gradient-to-r from-[hsl(var(--azul-secundario))] to-[hsl(var(--azul-primario))] bg-clip-text text-transparent ">
                 {" "}

@@ -5,15 +5,15 @@
 @custom-variant dark (&:is(.dark *));
 
 @font-face {
-  font-family: "poppins";
-  src: url("/fonts/tu-poppins-Regular.woff2") format("woff2");
+  font-family: "Poppins";
+  src: url("/fonts/poppins-Regular.woff2") format("woff2");
   font-weight: normal;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "adineuepro";
+  font-family: "adineue PRO Bold";
   src: url("/fonts/adineue-PRO-Bold.woff2") format("woff2");
   font-weight: bold;
   font-style: normal;
@@ -21,7 +21,7 @@
 }
 
 @font-face {
-  font-family: "adineue";
+  font-family: "adineue PRO";
   src: url("/fonts/adineue-PRO.woff2") format("woff2");
   font-weight: normal;
   font-style: normal;
@@ -66,10 +66,9 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
 
-  --font-adineuepro: "adineuepro", ui-sans-serif, system-ui, sans-serif;
-  --font-adineue: "adineue", ui-sans-serif, system-ui, sans-serif;
-  --font-poppins: "poppins", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: var(--font-poppins);
+  --font-adineue: "adineue PRO", sans-serif;
+  --font-adineue-bold: "adineue PRO Bold", sans-serif;
+  --font-poppins: "Poppins", sans-serif;
 }
 
 @layer base {
@@ -80,11 +79,12 @@
   ::file-selector-button {
     border-color: var(--color-gray-200, currentcolor);
   }
-  body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
-    font-family: var(--font-poppins);
-  }
+}
+
+html {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-poppins);
 }
 
 @layer base {
@@ -102,6 +102,7 @@
     --amarillo-principal: 46 95% 53%; /* #f9cc15 */
     --amarillo-transparente: 54 92% 88%; /* #fef9c3 */
     --enlace: 224 76% 48%; /* #254ab6 */
+    --pie-pagina: 225 30% 18%; /* #1f2437 */
 
     /* Variables compatibles con Tailwind CSS */
     --background: var(--fondo-claro);

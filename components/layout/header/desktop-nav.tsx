@@ -59,8 +59,8 @@ export function DesktopNav() {
   };
 
   return (
-    <nav className="hidden flex-grow items-center justify-between lg:flex">
-      <div className="flex items-center gap-8 mx-auto">
+    <nav className="hidden flex-grow items-center justify-between lg:flex ">
+      <div className="flex items-center gap-8 mx-auto ">
         {navLinks.map((link) => (
           <Link
             key={link.label}
