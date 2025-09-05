@@ -8,6 +8,9 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useState } from "react";
 import { Mail, ArrowLeft } from "lucide-react";
+import Image from "next/image";
+import Logo from "@/assets/Logo.webp";
+import { Card } from "./ui/card";
 
 export function ForgotPasswordForm({}: React.ComponentPropsWithoutRef<"div">) {
   const [email, setEmail] = useState("");
@@ -57,22 +60,17 @@ export function ForgotPasswordForm({}: React.ComponentPropsWithoutRef<"div">) {
   if (isSuccess) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="w-full max-w-md space-y-6">
+        <Card className="w-full max-w-md space-y-6">
           {/* Logo */}
-          <div className="text-center space-y-2">
-            <div className="flex justify-center items-center mb-4">
-              <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mr-3">
-                <Typography
-                  variant="heading-md"
-                  className="text-white font-bold"
-                >
-                  A
-                </Typography>
-              </div>
-              <Typography variant="heading-lg" className="text-primary">
-                genduX
-              </Typography>
-            </div>
+          <div className="text-center space-y-2 flex flex-col items-center">
+            <Link href="/">
+              <Image
+                src={Logo}
+                alt="Logo de Agendux"
+                className="h-8 w-auto"
+                priority
+              />
+            </Link>
             <Typography variant="heading-lg" className="text-foreground">
               Correo enviado
             </Typography>
@@ -83,7 +81,7 @@ export function ForgotPasswordForm({}: React.ComponentPropsWithoutRef<"div">) {
           </div>
 
           {/* Success card */}
-          <div className="bg-card border border-border rounded-2xl p-6 shadow-lg space-y-6">
+          <div className="space-y-6">
             <div className="text-center space-y-4">
               <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto">
                 <Mail className="h-8 w-8 text-accent" />
@@ -112,7 +110,7 @@ export function ForgotPasswordForm({}: React.ComponentPropsWithoutRef<"div">) {
               </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-3 text-center">
               <Button
                 onClick={() => {
                   setIsSuccess(false);
@@ -123,34 +121,33 @@ export function ForgotPasswordForm({}: React.ComponentPropsWithoutRef<"div">) {
                 Enviar otro enlace
               </Button>
 
-              <Link href="/auth/login" className="block">
-                <Button className="w-full">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Volver al inicio de sesión
-                </Button>
+              <Link
+                href="/auth/login"
+                className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Volver al inicio de sesión
               </Link>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-6">
+      <Card className="w-full max-w-md space-y-6">
         {/* Logo */}
-        <div className="text-center space-y-2">
-          <div className="flex justify-center items-center mb-4">
-            <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mr-3">
-              <Typography variant="heading-md" className="text-white font-bold">
-                A
-              </Typography>
-            </div>
-            <Typography variant="heading-lg" className="text-primary">
-              genduX
-            </Typography>
-          </div>
+        <div className="text-center space-y-2 flex flex-col items-center ">
+          <Link href="/">
+            <Image
+              src={Logo}
+              alt="Logo de Agendux"
+              className="h-8 w-auto"
+              priority
+            />
+          </Link>
           <Typography variant="heading-lg" className="text-foreground">
             ¿Olvidaste tu contraseña?
           </Typography>
@@ -160,7 +157,7 @@ export function ForgotPasswordForm({}: React.ComponentPropsWithoutRef<"div">) {
         </div>
 
         {/* Formulario */}
-        <div className="bg-card border border-border rounded-2xl p-6 shadow-lg space-y-6">
+        <div className=" space-y-6">
           <form onSubmit={handleResetPassword} className="space-y-6">
             {/* Email */}
             <div className="space-y-2">
@@ -192,9 +189,7 @@ export function ForgotPasswordForm({}: React.ComponentPropsWithoutRef<"div">) {
 
             {/* Reset button */}
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading
-                ? "Enviando enlace..."
-                : "Enviar enlace de restablecimiento"}
+              {isLoading ? "Enviando enlace..." : "Enviar enlace"}
             </Button>
           </form>
 
@@ -209,7 +204,7 @@ export function ForgotPasswordForm({}: React.ComponentPropsWithoutRef<"div">) {
             </Link>
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

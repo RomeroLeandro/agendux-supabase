@@ -8,6 +8,10 @@ import { Label } from "@/components/ui/label";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Eye, EyeOff, Lock, CheckCircle } from "lucide-react";
+import Image from "next/image";
+import Logo from "@/assets/Logo.webp";
+import { Card } from "./ui/card";
+import Link from "next/link";
 
 export function ResetPasswordForm({}: React.ComponentPropsWithoutRef<"div">) {
   const [password, setPassword] = useState("");
@@ -150,22 +154,17 @@ export function ResetPasswordForm({}: React.ComponentPropsWithoutRef<"div">) {
   if (isSuccess) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="w-full max-w-md space-y-6">
+        <Card className="w-full max-w-md space-y-6">
           {/* Logo */}
-          <div className="text-center space-y-2">
-            <div className="flex justify-center items-center mb-4">
-              <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mr-3">
-                <Typography
-                  variant="heading-md"
-                  className="text-white font-bold"
-                >
-                  A
-                </Typography>
-              </div>
-              <Typography variant="heading-lg" className="text-primary">
-                genduX
-              </Typography>
-            </div>
+          <div className="text-center space-y-2 flex flex-col items-center">
+            <Link href="/">
+              <Image
+                src={Logo}
+                alt="Logo de Agendux"
+                className="h-8 w-auto"
+                priority
+              />
+            </Link>
             <Typography variant="heading-lg" className="text-foreground">
               ¡Contraseña actualizada!
             </Typography>
@@ -175,7 +174,7 @@ export function ResetPasswordForm({}: React.ComponentPropsWithoutRef<"div">) {
           </div>
 
           {/* Success card */}
-          <div className="bg-card border border-border rounded-2xl p-6 shadow-lg space-y-6">
+          <div className="space-y-6">
             <div className="text-center space-y-4">
               <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto">
                 <CheckCircle className="h-8 w-8 text-accent" />
@@ -198,26 +197,24 @@ export function ResetPasswordForm({}: React.ComponentPropsWithoutRef<"div">) {
               Ir al Dashboard
             </Button>
           </div>
-        </div>
+        </Card>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-6">
+      <Card className="w-full max-w-md space-y-6">
         {/* Logo */}
-        <div className="text-center space-y-2">
-          <div className="flex justify-center items-center mb-4">
-            <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mr-3">
-              <Typography variant="heading-md" className="text-white font-bold">
-                A
-              </Typography>
-            </div>
-            <Typography variant="heading-lg" className="text-primary">
-              genduX
-            </Typography>
-          </div>
+        <div className="text-center space-y-2 flex flex-col items-center">
+          <Link href="/">
+            <Image
+              src={Logo}
+              alt="Logo de Agendux"
+              className="h-8 w-auto"
+              priority
+            />
+          </Link>
           <Typography variant="heading-lg" className="text-foreground">
             Nueva contraseña
           </Typography>
@@ -227,7 +224,7 @@ export function ResetPasswordForm({}: React.ComponentPropsWithoutRef<"div">) {
         </div>
 
         {/* Formulario */}
-        <div className="bg-card border border-border rounded-2xl p-6 shadow-lg space-y-6">
+        <div className=" space-y-6">
           <form onSubmit={handleResetPassword} className="space-y-6">
             {/* Password */}
             <div className="space-y-2">
@@ -306,7 +303,7 @@ export function ResetPasswordForm({}: React.ComponentPropsWithoutRef<"div">) {
             </Button>
           </form>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

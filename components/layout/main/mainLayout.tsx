@@ -15,6 +15,7 @@ export default function ConditionalHeader({
     "/auth/login",
     "/auth/sign-up",
     "/auth/forgot-password",
+    "/auth/reset-password",
     "/login",
     "/signup",
     "/dashboard",
