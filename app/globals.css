@@ -64,63 +64,117 @@
 
 @layer base {
   :root {
-    /* Tema claro basado en tus colores */
-    --background: 0 0% 100%; /* --color-bg-light: #ffffff */
-    --foreground: 220 13% 9%; /* --color-font-primary-light: #111827 */
-    --card: 0 0% 100%;
-    --card-foreground: 220 13% 9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 13% 9%;
-    --primary: 227 69% 53%; /* --color-blue-primary: #3161dd */
+    /* Variables de colores personalizadas */
+    --fondo-claro: 0 0% 100%; /* #ffffff */
+    --texto-principal-claro: 220 13% 9%; /* #111827 */
+    --texto-secundario-claro: 0 0% 34%; /* #575757 */
+    --azul-primario: 227 69% 53%; /* #3161dd */
+    --azul-secundario: 217 100% 66%; /* #528dff */
+    --verde-principal: 142 71% 45%; /* #22c55e */
+    --verde-transparente: 142 76% 88%; /* #dcfce7 */
+    --rojo-principal: 0 79% 73%; /* #f77171 */
+    --rojo-transparente: 0 70% 93%; /* #fee2e2 */
+    --amarillo-principal: 46 95% 53%; /* #f9cc15 */
+    --amarillo-transparente: 54 92% 88%; /* #fef9c3 */
+    --enlace: 224 76% 48%; /* #254ab6 */
+
+    /* Variables compatibles con Tailwind CSS */
+    --background: var(--fondo-claro);
+    --foreground: var(--texto-principal-claro);
+    --card: var(--fondo-claro);
+    --card-foreground: var(--texto-principal-claro);
+    --popover: var(--fondo-claro);
+    --popover-foreground: var(--texto-principal-claro);
+    --primary: var(--azul-primario);
     --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 34%; /* --color-font-secondary-light: #575757 */
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: var(--texto-secundario-claro);
     --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 34%;
-    --accent: 142 71% 45%; /* --color-color-green: #22c55e */
+    --muted-foreground: var(--texto-secundario-claro);
+    --accent: var(--verde-principal);
     --accent-foreground: 0 0% 9%;
-    --destructive: 0 79% 73%; /* --color-color-red: #f77171 */
+    --destructive: var(--rojo-principal);
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 89%;
     --input: 0 0% 89%;
-    --ring: 227 69% 53%; /* color del primary para focus */
-    --chart-1: 227 69% 53%; /* blue primary */
-    --chart-2: 142 71% 45%; /* green */
-    --chart-3: 224 76% 48%; /* link color */
-    --chart-4: 46 95% 53%; /* yellow */
-    --chart-5: 217 100% 66%; /* blue secondary */
+    --ring: var(--azul-primario);
     --radius: 0.5rem;
+
+    /* Variables para gráficos */
+    --chart-1: var(--azul-primario);
+    --chart-2: var(--verde-principal);
+    --chart-3: var(--enlace);
+    --chart-4: var(--amarillo-principal);
+    --chart-5: var(--azul-secundario);
   }
 
   .dark {
-    /* Tema oscuro basado en tus colores */
-    --background: 0 0% 12%; /* --color-bg-dark: #1e1e1e */
-    --foreground: 220 14% 96%; /* --color-font-primary-dark: #f3f4f6 */
-    --card: 240 4% 16%; /* --color-bg-dark-secondary: #28282a */
-    --card-foreground: 220 14% 96%;
-    --popover: 240 4% 16%;
-    --popover-foreground: 220 14% 96%;
-    --primary: 227 69% 53%; /* --color-blue-primary: #3161dd */
-    --primary-foreground: 0 0% 9%;
-    --secondary: 240 4% 16%;
-    --secondary-foreground: 0 0% 66%; /* --color-font-secondary-dark: #a9a9a9 */
-    --muted: 240 4% 16%;
-    --muted-foreground: 0 0% 66%;
-    --accent: 142 71% 45%; /* --color-color-green: #22c55e */
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 79% 73%; /* --color-color-red: #f77171 */
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 4% 16%;
-    --input: 240 4% 16%;
-    --ring: 220 14% 96%;
-    --chart-1: 227 69% 53%; /* blue primary */
-    --chart-2: 142 71% 45%; /* green */
-    --chart-3: 224 76% 48%; /* link color */
-    --chart-4: 46 95% 53%; /* yellow */
-    --chart-5: 217 100% 66%; /* blue secondary */
+    /* Variables de colores para tema oscuro */
+    --fondo-oscuro: 0 0% 12%; /* #1e1e1e */
+    --fondo-oscuro-secundario: 240 4% 16%; /* #28282a */
+    --texto-principal-oscuro: 220 14% 96%; /* #f3f4f6 */
+    --texto-secundario-oscuro: 0 0% 66%; /* #a9a9a9 */
+    --pie-pagina: 225 30% 18%; /* #1f2437 */
 
-    /* Variables adicionales del footer */
-    --footer: 225 30% 18%; /* --color-footer: #1f2437 */
+    /* Variables compatibles con Tailwind CSS para tema oscuro */
+    --background: var(--fondo-oscuro);
+    --foreground: var(--texto-principal-oscuro);
+    --card: var(--fondo-oscuro-secundario);
+    --card-foreground: var(--texto-principal-oscuro);
+    --popover: var(--fondo-oscuro-secundario);
+    --popover-foreground: var(--texto-principal-oscuro);
+    --primary: var(--azul-primario);
+    --primary-foreground: 0 0% 9%;
+    --secondary: var(--fondo-oscuro-secundario);
+    --secondary-foreground: var(--texto-secundario-oscuro);
+    --muted: var(--fondo-oscuro-secundario);
+    --muted-foreground: var(--texto-secundario-oscuro);
+    --accent: var(--verde-principal);
+    --accent-foreground: 0 0% 98%;
+    --destructive: var(--rojo-principal);
+    --destructive-foreground: 0 0% 98%;
+    --border: var(--fondo-oscuro-secundario);
+    --input: var(--fondo-oscuro-secundario);
+    --ring: var(--texto-principal-oscuro);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      "Helvetica Neue", Arial, sans-serif;
+  }
+}
+
+/* Clases de utilidad personalizadas para usar tus colores directamente */
+@layer utilities {
+  .text-primary-light {
+    color: hsl(var(--texto-principal-claro));
+  }
+  .text-secondary-light {
+    color: hsl(var(--texto-secundario-claro));
+  }
+  .text-primary-dark {
+    color: hsl(var(--texto-principal-oscuro));
+  }
+  .text-secondary-dark {
+    color: hsl(var(--texto-secundario-oscuro));
+  }
+  .bg-primary-blue {
+    background-color: hsl(var(--azul-primario));
+  }
+  .bg-secondary-blue {
+    background-color: hsl(var(--azul-secundario));
+  }
+  .bg-primary-green {
+    background-color: hsl(var(--verde-principal));
+  }
+  .bg-footer {
+    background-color: hsl(var(--pie-pagina));
   }
 }
 
@@ -131,4 +185,66 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Estilos para CustomPhoneInput */
+.phone-input-container .PhoneInput {
+  background-color: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.phone-input-container .PhoneInputInput {
+  background-color: transparent;
+  border: none;
+  color: hsl(var(--foreground));
+  outline: none;
+  font-size: 1rem;
+  width: 100%;
+}
+
+.phone-input-container .PhoneInputInput::placeholder {
+  color: hsl(var(--muted-foreground));
+}
+
+.phone-input-container .PhoneInputCountrySelect {
+  background-color: transparent;
+  border: none;
+  color: hsl(var(--foreground));
+  margin-right: 0.5rem;
+  cursor: pointer;
+}
+
+.phone-input-container .PhoneInputCountrySelectArrow {
+  color: hsl(var(--muted-foreground));
+  margin-left: 0.25rem;
+}
+
+.phone-input-container .PhoneInput:focus-within {
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.2);
+}
+
+.phone-input-container .PhoneInput:hover {
+  border-color: hsl(var(--muted-foreground));
+}
+
+/* Estilos específicos para tema oscuro */
+.dark .phone-input-container .PhoneInput {
+  background-color: hsl(var(--background));
+  border-color: hsl(var(--border));
+}
+
+.dark .phone-input-container .PhoneInputInput {
+  color: hsl(var(--foreground));
+}
+
+.dark .phone-input-container .PhoneInputCountrySelect {
+  color: hsl(var(--foreground));
+}
+
+.dark .phone-input-container .PhoneInputCountrySelectArrow {
+  color: hsl(var(--muted-foreground));
 }

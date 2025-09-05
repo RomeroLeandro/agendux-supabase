@@ -1,83 +1,29 @@
-import * as React from "react";
+"use client";
 
-import { cn } from "@/lib/utils";
+import { twMerge } from "tailwind-merge";
 
-const Card = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "rounded-xl border bg-card text-card-foreground shadow-sm",
-      className,
-    )}
-    {...props}
-  />
-));
-Card.displayName = "Card";
+type CardVariant = "default" | "featured";
 
-const CardHeader = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("flex flex-col space-y-1.5 p-6", className)}
-    {...props}
-  />
-));
-CardHeader.displayName = "CardHeader";
+interface CardProps {
+  children: React.ReactNode;
+  variant?: CardVariant;
+  className?: string;
+}
 
-const CardTitle = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("font-semibold leading-none tracking-tight", className)}
-    {...props}
-  />
-));
-CardTitle.displayName = "CardTitle";
+export const Card: React.FC<CardProps> = ({
+  children,
+  variant = "default",
+  className = "",
+}) => {
+  const variantStyles = {
+    default:
+      "bg-bg-light dark:bg-bg-dark-secondary transition-colors duration-300 border border-gray-200 dark:border-gray-800 shadow-md",
+    featured:
+      "bg-bg-light dark:bg-bg-dark-secondary transition-colors duration-300 border border-4 border-blue-primary shadow-md ",
+  };
 
-const CardDescription = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
-    {...props}
-  />
-));
-CardDescription.displayName = "CardDescription";
+  const baseStyles = "rounded-2xl p-6 md:p-8 h-full";
 
-const CardContent = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
-));
-CardContent.displayName = "CardContent";
-
-const CardFooter = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("flex items-center p-6 pt-0", className)}
-    {...props}
-  />
-));
-CardFooter.displayName = "CardFooter";
-
-export {
-  Card,
-  CardHeader,
-  CardFooter,
-  CardTitle,
-  CardDescription,
-  CardContent,
+  const finalClassName = twMerge(baseStyles, variantStyles[variant], className);
+  return <div className={finalClassName}>{children}</div>;
 };
