@@ -17,9 +17,9 @@ export const footerLinks = [
   {
     title: "Legal",
     links: [
-      { label: "Privacidad", href: "/privacidad" },
-      { label: "Términos de uso", href: "/terminos" },
-      { label: "Política de cookies", href: "/cookies" },
+      { label: "Privacidad", href: "/legal/privacidad" },
+      { label: "Términos de uso", href: "/legal/terminos" },
+      { label: "Política de cookies", href: "/legal/cookies" },
     ],
   },
   {

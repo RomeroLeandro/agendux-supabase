@@ -2,17 +2,29 @@ import { updateSession } from "@/lib/supabase/middleware";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
-  // Permitir rutas de reset sin middleware de autenticación
-  if (
-    request.nextUrl.pathname.startsWith("/auth/reset-password") ||
-    request.nextUrl.pathname.startsWith("/auth/forgot-password") ||
-    request.nextUrl.pathname.startsWith("/auth/callback")
-  ) {
+  const pathname = request.nextUrl.pathname;
+
+  const publicRoutes = [
+    "/",
+    "/legal/cookies",
+    "/legal/privacidad",
+    "/legal/terminos",
+    "/auth/login",
+    "/auth/sign-up",
+    "/auth/forgot-password",
+    "/auth/reset-password",
+    "/auth/callback",
+  ];
+
+  const protectedRoutes = ["/dashboard", "/settings", "/profile", "/admin"];
+
+  if (publicRoutes.some((route) => pathname.startsWith(route))) {
     return NextResponse.next();
   }
-
-  // Para todas las demás rutas, usar el middleware normal
-  return await updateSession(request);
+  if (protectedRoutes.some((route) => pathname.startsWith(route))) {
+    return await updateSession(request);
+  }
+  return NextResponse.next();
 }
 
 export const config = {

@@ -4,6 +4,11 @@
 
 @custom-variant dark (&:is(.dark *));
 
+html {
+  @apply bg-background text-foreground;
+  scroll-behavior: smooth;
+}
+
 @theme {
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
@@ -239,4 +244,9 @@ html {
 
 .dark .phone-input-container .PhoneInputCountrySelectArrow {
   color: hsl(var(--muted-foreground));
+}
+
+.subtittle-privacity {
+  margin-top: 1.5rem; /* mt-6 */
+  color: var(--color-chart-5);
 }
