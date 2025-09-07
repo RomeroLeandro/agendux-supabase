@@ -1,7 +1,7 @@
 import { Typography } from "@/components/ui/typography";
 import { schedulingFeatures } from "@/config/landing";
 import { SchedulingFeature } from "./scheduling-feature";
-import { BookingSimulator } from ".//booking-simulator";
+import BookingSimulator  from "./booking-simulator";
 
 export function AutoSchedulingSection() {
   return (
@@ -33,6 +33,7 @@ export function AutoSchedulingSection() {
             <BookingSimulator />
           </div>
         </div>
+        
       </div>
     </section>
   );

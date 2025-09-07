@@ -1,17 +1,16 @@
-"use client";
 import { ChangeEvent, FormEvent, useState } from "react";
-import { ProfileView } from "@/components/booking/profile-view";
-import { StatusStep } from "@/components/booking/status-step";
-import { CalendarStep } from "@/components/booking/calendar-step";
-import { TimeSlotStep } from "@/components/booking/time-slot-step";
-import { ConfirmationStep } from "@/components/booking/confirmation-step";
-import { MeetingTypeStep } from "@/components/booking/meeting-type-step";
+import { ProfileView } from "./profile-view";
+import { StatusStep } from "./status-step";
+import { CalendarStep } from "./calendar-step";
+import { TimeSlotStep } from "./time-slot-step";
+import { ConfirmationStep } from "./confirmation-step";
+import { MeetingTypeStep } from "./meeting-type-step";
 import {
   mockProfile,
   mockMeetingTypes,
   mockTimeSlots,
 } from "@/config/professional";
-import { Card } from "@/components/ui/card";
+import { Card } from "../ui/card";
 
 interface MeetingType {
   id: number;
@@ -141,5 +140,5 @@ export default function BookingSimulator() {
     }
   };
 
-  return <Card className="h-[400px]">{renderStepContent()}</Card>;
+  return <Card className="">{renderStepContent()}</Card>;
 }
