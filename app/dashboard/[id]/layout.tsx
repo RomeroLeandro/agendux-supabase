@@ -7,7 +7,7 @@ export default async function DashboardLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const supabase = await createClient();
 
@@ -18,10 +18,12 @@ export default async function DashboardLayout({
     redirect("/auth/login");
   }
 
+  const { id } = await params;
+
   const { data: professional, error } = await supabase
     .from("profiles")
     .select("*, professions(*)")
-    .eq("id", params.id)
+    .eq("id", id)
     .single();
 
   if (error || !professional) {
@@ -45,7 +47,11 @@ export default async function DashboardLayout({
     .select("*", { count: "exact", head: true })
     .eq("user_id", user.id);
 
-    const { count: unreadMessagesCount } = await supabase.from('messages').select('*', { count: 'exact', head: true }).eq('recipient_id', user.id).eq('is_read', false);
+  const { count: unreadMessagesCount } = await supabase
+    .from("messages")
+    .select("*", { count: "exact", head: true })
+    .eq("recipient_id", user.id)
+    .eq("is_read", false);
 
   if (countError) {
     console.error("Error counting today's appointments:", countError);
