@@ -1,5 +1,3 @@
-// @/app/dashboard/[id]/page.tsx
-
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { DashboardUI } from "./dashboardUI";
@@ -7,7 +5,7 @@ import { DashboardUI } from "./dashboardUI";
 export default async function ProfessionalDashboardPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const supabase = await createClient();
 
@@ -18,10 +16,12 @@ export default async function ProfessionalDashboardPage({
     redirect("/auth/login");
   }
 
+  const { id } = await params;
+
   const { data: professional, error } = await supabase
     .from("profiles")
     .select("*, professions(*)")
-    .eq("id", params.id)
+    .eq("id", id)
     .single();
 
   if (error || !professional) {
