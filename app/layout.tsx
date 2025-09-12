@@ -10,8 +10,33 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "Next.js and Supabase Starter Kit",
-  description: "The fastest way to build apps with Next.js and Supabase",
+  title: "Agendux | Gestioná tu Agenda de Citas Online",
+  description:
+    "Agendux es la plataforma líder para profesionales. Automatizá la gestión de tus citas, permití que tus clientes agenden online y optimizá tu tiempo.",
+  openGraph: {
+    title: "Agendux | Gestioná tu Agenda de Citas Online",
+    description:
+      "Agendux es la plataforma líder para profesionales. Automatizá la gestión de tus citas, permití que tus clientes agenden online y optimizá tu tiempo.",
+    url: defaultUrl,
+    siteName: "Agendux",
+    images: [
+      {
+        url: "/Logo.ico",
+        width: 1200,
+        height: 630,
+        alt: "Agendux | Gestioná tu Agenda de Citas Online",
+      },
+    ],
+    locale: "es_AR",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Agendux | Gestioná tu Agenda de Citas Online",
+    description:
+      "Agendux es la plataforma líder para profesionales. Automatizá la gestión de tus citas, permití que tus clientes agenden online y optimizá tu tiempo.",
+    images: ["/Logo.ico"],
+  },
 };
 
 export default function RootLayout({
