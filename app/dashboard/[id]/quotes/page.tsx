@@ -55,8 +55,18 @@ interface Appointment {
 export default function AllAppointmentsPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const [userId, setUserId] = useState<string>("");
+
+  useEffect(() => {
+    const resolveParams = async () => {
+      const resolvedParams = await params;
+      setUserId(resolvedParams.id);
+    };
+    resolveParams();
+  }, [params]);
+
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -242,9 +252,7 @@ export default function AllAppointmentsPage({
             Gestiona todas las citas programadas
           </Typography>
         </div>
-        <Button
-          onClick={() => router.push(`/dashboard/${params.id}/citas/nueva`)}
-        >
+        <Button onClick={() => router.push(`/dashboard/${userId}/citas/nueva`)}>
           <Plus className="h-4 w-4 mr-2" />
           Nueva Cita
         </Button>
