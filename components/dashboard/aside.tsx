@@ -36,28 +36,52 @@ interface ProfessionalProfile {
 interface AsideProps {
   user: User | null;
   professional: ProfessionalProfile | null;
+  todaysAppointmentsCount: number;
+  allAppointmentsCount: number;
+  unreadMessagesCount: number;
 }
 
-const navLinks = [
-  { path: "", label: "Dashboard", icon: LayoutDashboard },
-  { path: "quotes/new", label: "Nueva Cita", icon: Plus },
-  { path: "quotes/today", label: "Citas de Hoy", icon: Clock, badge: 3 },
-  { path: "quotes", label: "Todas las Citas", icon: Calendar },
-  { path: "calendar", label: "Mi Calendario", icon: CalendarDays },
-  { path: "services", label: "Servicios", icon: Briefcase },
-  { path: "reports", label: "Reportes", icon: BarChart },
-  { path: "messages", label: "Mensajes", icon: MessageSquare, badge: 2 },
-  { path: "self-schedule", label: "Auto-Agenda", icon: Globe },
-  { path: "subscription", label: "Suscripción", icon: CreditCard },
-  { path: "settings", label: "Configuración", icon: Settings },
-];
-
-export const Aside = ({ user, professional }: AsideProps) => {
+export const Aside = ({
+  user,
+  professional,
+  todaysAppointmentsCount,
+  allAppointmentsCount,
+  unreadMessagesCount,
+}: AsideProps) => {
   const pathname = usePathname();
   const professionalId = professional?.id;
   const userEmail = user?.email || "";
   const router = useRouter();
   const supabase = createClient();
+
+  const navLinks = [
+    { path: "", label: "Dashboard", icon: LayoutDashboard },
+    { path: "quotes/new", label: "Nueva Cita", icon: Plus },
+    {
+      path: "quotes/today",
+      label: "Citas de Hoy",
+      icon: Clock,
+      badge: todaysAppointmentsCount,
+    },
+    {
+      path: "quotes",
+      label: "Todas las Citas",
+      icon: Calendar,
+      badge: allAppointmentsCount,
+    },
+    { path: "calendar", label: "Mi Calendario", icon: CalendarDays },
+    { path: "services", label: "Servicios", icon: Briefcase },
+    { path: "reports", label: "Reportes", icon: BarChart },
+    {
+      path: "messages",
+      label: "Mensajes",
+      icon: MessageSquare,
+      badge: unreadMessagesCount,
+    },
+    { path: "self-schedule", label: "Auto-Agenda", icon: Globe },
+    { path: "subscription", label: "Suscripción", icon: CreditCard },
+    { path: "settings", label: "Configuración", icon: Settings },
+  ];
 
   const getInitials = () => {
     if (!professional) return "?";

@@ -48,7 +48,7 @@ export function AuthButton() {
   return user ? (
     <div className="flex items-center gap-4">
       <span className="text-muted-foreground text-sm">Hey, {user.email}!</span>
-      <Link href="/dashboard">
+      <Link href={`/dashboard/${user.id}`}>
         <Button>Dashboard</Button>
       </Link>
       <LogoutButton />
