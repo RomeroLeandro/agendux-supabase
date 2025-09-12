@@ -1,5 +1,5 @@
 "use client";
-
+import { createClient } from "@/lib/supabase/client";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -14,8 +14,9 @@ import {
   MessageSquare,
   Globe,
   CreditCard,
+  Briefcase,
 } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { twMerge } from "tailwind-merge";
 
 import { Typography } from "@/components/ui/typography";
@@ -35,27 +36,28 @@ interface ProfessionalProfile {
 interface AsideProps {
   user: User | null;
   professional: ProfessionalProfile | null;
-  onLogout: () => void;
 }
 
 const navLinks = [
   { path: "", label: "Dashboard", icon: LayoutDashboard },
-  { path: "citas/nueva", label: "Nueva Cita", icon: Plus },
-  { path: "citas/hoy", label: "Citas de Hoy", icon: Clock, badge: 3 },
-  { path: "citas", label: "Todas las Citas", icon: Calendar },
-  { path: "calendario", label: "Mi Calendario", icon: CalendarDays },
-  { path: "servicios", label: "Servicios", icon: Clock },
-  { path: "reportes", label: "Reportes", icon: BarChart },
-  { path: "mensajes", label: "Mensajes", icon: MessageSquare, badge: 2 },
-  { path: "auto-agenda", label: "Auto-Agenda", icon: Globe },
-  { path: "suscripcion", label: "Suscripción", icon: CreditCard },
-  { path: "configuracion", label: "Configuración", icon: Settings },
+  { path: "quotes/new", label: "Nueva Cita", icon: Plus },
+  { path: "quotes/today", label: "Citas de Hoy", icon: Clock, badge: 3 },
+  { path: "quotes", label: "Todas las Citas", icon: Calendar },
+  { path: "calendar", label: "Mi Calendario", icon: CalendarDays },
+  { path: "services", label: "Servicios", icon: Briefcase },
+  { path: "reports", label: "Reportes", icon: BarChart },
+  { path: "messages", label: "Mensajes", icon: MessageSquare, badge: 2 },
+  { path: "self-schedule", label: "Auto-Agenda", icon: Globe },
+  { path: "subscription", label: "Suscripción", icon: CreditCard },
+  { path: "settings", label: "Configuración", icon: Settings },
 ];
 
-export const Aside = ({ user, professional, onLogout }: AsideProps) => {
+export const Aside = ({ user, professional }: AsideProps) => {
   const pathname = usePathname();
   const professionalId = professional?.id;
   const userEmail = user?.email || "";
+  const router = useRouter();
+  const supabase = createClient();
 
   const getInitials = () => {
     if (!professional) return "?";
@@ -66,6 +68,14 @@ export const Aside = ({ user, professional, onLogout }: AsideProps) => {
     ? `${professional.first_name} ${professional.last_name}`
     : "Cargando...";
   const professionName = professional?.professions?.name || "Profesional";
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+
+    router.push("/");
+
+    router.refresh();
+  };
 
   return (
     <aside className="w-72 flex-shrink-0 bg-card border-r border-border flex flex-col p-4">
@@ -149,7 +159,7 @@ export const Aside = ({ user, professional, onLogout }: AsideProps) => {
           <ThemeSwitcher />
         </div>
         <Button
-          onClick={onLogout}
+          onClick={handleLogout}
           className="w-full flex items-center justify-center gap-x-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-destructive hover:text-foreground transition-colors bg-transparent"
         >
           <LogOut className="h-5 w-5" />
