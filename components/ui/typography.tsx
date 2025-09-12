@@ -9,6 +9,7 @@ type TypographyVariant =
   | "body-lg"
   | "body-md"
   | "body-sm"
+  | "body-xs"
   | "caption"
   | "badge";
 
@@ -34,6 +35,7 @@ export const Typography: React.FC<TypographyProps> = ({
     "body-lg": "p",
     "body-md": "p",
     "body-sm": "p",
+    "body-xs": "p",
     caption: "span",
     badge: "span",
   };
@@ -48,6 +50,7 @@ export const Typography: React.FC<TypographyProps> = ({
     "body-lg": "text-lg text-muted-foreground",
     "body-md": "text-base text-muted-foreground",
     "body-sm": "text-sm text-muted-foreground",
+    "body-xs": "text-xs text-muted-foreground",
     caption: "font-semibold text-sm text-primary",
     badge:
       "inline-block px-3 py-1 font-semibold text-lg uppercase tracking-wider rounded-full bg-primary/20 text-primary dark:bg-white",

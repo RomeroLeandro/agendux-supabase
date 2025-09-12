@@ -1,3 +1,4 @@
+
 export const navLinks = [
   { href: "/#como-funciona", label: "Cómo funciona" },
   { href: "/#planes", label: "Planes" },

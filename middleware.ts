@@ -14,6 +14,7 @@ export async function middleware(request: NextRequest) {
     "/auth/forgot-password",
     "/auth/reset-password",
     "/auth/callback",
+    
   ];
 
   const protectedRoutes = ["/dashboard", "/settings", "/profile", "/admin"];
@@ -22,6 +23,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
   if (protectedRoutes.some((route) => pathname.startsWith(route))) {
+    return await updateSession(request);
+  }
+
+  if (pathname.match(/^\/dashboard\/[^\/]+/)) {
     return await updateSession(request);
   }
   return NextResponse.next();

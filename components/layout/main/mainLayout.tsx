@@ -19,10 +19,11 @@ export default function ConditionalHeader({
     "/auth/reset-password",
     "/login",
     "/signup",
-    "/dashboard",
+    "/onboarding",
   ];
 
-  const shouldHideHeader = hideHeaderRoutes.includes(pathname);
+  const shouldHideHeader =
+    hideHeaderRoutes.includes(pathname) || pathname.startsWith("/dashboard");
 
   return (
     <>

@@ -6,7 +6,7 @@ import { Typography } from "@/components/ui/typography";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
@@ -23,7 +23,8 @@ export function SignUpForm({}: React.ComponentPropsWithoutRef<"div">) {
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
+
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const translateError = (error: string) => {
     const errorTranslations: { [key: string]: string } = {
@@ -44,38 +45,36 @@ export function SignUpForm({}: React.ComponentPropsWithoutRef<"div">) {
       "Invalid password": "Contraseña inválida",
       "Account is disabled": "La cuenta está deshabilitada",
     };
-
     return errorTranslations[error] || error;
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    const supabase = createClient();
-    setIsLoading(true);
-    setError(null);
-
     if (password !== confirmPassword) {
       setError("Las contraseñas no coinciden");
-      setIsLoading(false);
+      return;
+    }
+    if (!acceptTerms) {
+      setError("Debes aceptar los términos y condiciones");
       return;
     }
 
-    if (!acceptTerms) {
-      setError("Debes aceptar los términos y condiciones");
-      setIsLoading(false);
-      return;
-    }
+    setIsLoading(true);
+    setError(null);
+    const supabase = createClient();
 
     try {
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/protected`,
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
+
       if (error) throw error;
-      router.push("/dashboard ");
+
+      setIsSubmitted(true);
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : "Ocurrió un error";
@@ -95,9 +94,29 @@ export function SignUpForm({}: React.ComponentPropsWithoutRef<"div">) {
     });
   };
 
+  if (isSubmitted) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full text-center space-y-4">
+          <Mail className="mx-auto h-12 w-12 text-primary" />
+          <Typography variant="heading-lg" className="text-foreground">
+            ¡Revisa tu correo!
+          </Typography>
+          <Typography
+            variant="body-md"
+            className="text-muted-foreground max-w-sm mx-auto"
+          >
+            Te hemos enviado un enlace a <b>{email}</b>. Por favor, haz clic en
+            él para activar tu cuenta.
+          </Typography>
+        </Card>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="w-full space-y-6">
+    <div className=" bg-background flex items-center justify-center ">
+      <Card className="w-full space-y-6 min-w-[420px]">
         {/* Logo */}
         <div className="text-center space-y-2 flex flex-col items-center">
           <Link href="/">
@@ -243,7 +262,7 @@ export function SignUpForm({}: React.ComponentPropsWithoutRef<"div">) {
               <span className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-transparent px-2 text-muted-foreground">
+              <span className="bg-background dark:bg-card px-2 text-muted-foreground">
                 O continúa con
               </span>
             </div>

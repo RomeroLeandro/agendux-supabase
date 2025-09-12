@@ -141,8 +141,8 @@ html {
     --accent-foreground: 0 0% 98%;
     --destructive: var(--rojo-principal);
     --destructive-foreground: 0 0% 98%;
-    --border: var(--fondo-oscuro-secundario);
-    --input: var(--fondo-oscuro-secundario);
+    --border: var(--texto-secundario-oscuro);
+    --input: var(--texto-secundario-oscuro);
     --ring: var(--texto-principal-oscuro);
   }
 }

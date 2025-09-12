@@ -49,17 +49,35 @@ export function LoginForm({}: React.ComponentPropsWithoutRef<"div">) {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const supabase = createClient();
     setIsLoading(true);
     setError(null);
+    const supabase = createClient();
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      if (error) throw error;
-      router.push("/dashboard");
+      // 1. El usuario inicia sesión como siempre
+      const { data: authData, error: signInError } =
+        await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+      if (signInError) throw signInError;
+      if (!authData.user) throw new Error("No se pudo obtener el usuario.");
+
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("id, onboarding_complete")
+        .eq("id", authData.user.id)
+        .single();
+
+      if (profileError) throw profileError;
+      if (!profile) throw new Error("Perfil de profesional no encontrado.");
+
+      if (profile.onboarding_complete) {
+        router.push(`/dashboard/${profile.id}`);
+      } else {
+        router.push("/onboarding");
+      }
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : "Ocurrió un error";
@@ -201,7 +219,7 @@ export function LoginForm({}: React.ComponentPropsWithoutRef<"div">) {
               <span className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-transparent px-2 text-muted-foreground">
+              <span className="bg-background dark:bg-card px-2 text-muted-foreground">
                 O continúa con
               </span>
             </div>
