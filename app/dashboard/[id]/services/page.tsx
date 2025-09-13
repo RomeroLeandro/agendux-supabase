@@ -61,13 +61,13 @@ export default function ServicesPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
+      console.log("ID del usuario logueado en la APP:", user?.id);
       if (user) {
         setUser(user);
         const { data, error } = await supabase
           .from("services")
           .select("*")
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false });
+          .eq("user_id", user.id);
         if (error) console.error("Error fetching services:", error);
         else setServices(data || []);
       }

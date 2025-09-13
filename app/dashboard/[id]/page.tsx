@@ -27,9 +27,10 @@ const formatTime = (dateString: string) =>
 export default async function DashboardHomePage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const supabase = await createClient();
+  const { id } = await params;
 
   const {
     data: { user },
@@ -42,7 +43,7 @@ export default async function DashboardHomePage({
   const professionalPromise = supabase
     .from("profiles")
     .select("first_name, last_name")
-    .eq("id", params.id)
+    .eq("id", id)
     .single();
   const totalPatientsPromise = supabase
     .from("patients")
@@ -221,7 +222,7 @@ export default async function DashboardHomePage({
               <Typography variant="heading-md" className="p-0">
                 Citas de Hoy
               </Typography>
-              <Link href={`/dashboard/${params.id}/citas/hoy`}>
+              <Link href={`/dashboard/${id}/citas/hoy`}>
                 <Button>
                   Ver todas <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
@@ -267,23 +268,17 @@ export default async function DashboardHomePage({
               Acciones Rápidas
             </Typography>
             <div className="space-y-2">
-              <Link
-                href={`/dashboard/${params.id}/citas/nueva`}
-                className="block"
-              >
+              <Link href={`/dashboard/${id}/citas/nueva`} className="block">
                 <Button className="w-full justify-start">
                   <Plus className="h-4 w-4 mr-2" /> Nueva Cita
                 </Button>
               </Link>
-              <Link
-                href={`/dashboard/${params.id}/calendario`}
-                className="block"
-              >
+              <Link href={`/dashboard/${id}/calendario`} className="block">
                 <Button className="w-full justify-start">
                   <Calendar className="h-4 w-4 mr-2" /> Ver Agenda
                 </Button>
               </Link>
-              <Link href={`/dashboard/${params.id}/mensajes`} className="block">
+              <Link href={`/dashboard/${id}/mensajes`} className="block">
                 <Button className="w-full justify-start">
                   <MessageSquare className="h-4 w-4 mr-2" /> Mensajes
                 </Button>
