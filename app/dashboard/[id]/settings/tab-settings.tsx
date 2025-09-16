@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 const tabs = [
@@ -11,16 +10,19 @@ const tabs = [
   { id: "security", label: "Seguridad", icon: "🔒" },
 ];
 
-export function SettingsTabs() {
-  const [activeTab, setActiveTab] = useState("profile");
+interface SettingsTabsProps {
+  activeTab: string;
+  onTabChange: (tabId: string) => void;
+}
 
+export function SettingsTabs({ activeTab, onTabChange }: SettingsTabsProps) {
   return (
     <div className="border-b border-border">
       <nav className="flex space-x-8">
         {tabs.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => onTabChange(tab.id)}
             className={cn(
               "flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors",
               activeTab === tab.id
