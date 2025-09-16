@@ -3,11 +3,11 @@ import { redirect } from "next/navigation";
 import { Typography } from "@/components/ui/typography";
 import { AnalyticsDashboard } from "./analitycs-dashboard";
 
-interface ReportsPageProps {
-  params: { id: string };
-}
-
-export default async function ReportsPage({ params }: ReportsPageProps) {
+export default async function ReportsPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const supabase = await createClient();
 
   const {
@@ -18,7 +18,7 @@ export default async function ReportsPage({ params }: ReportsPageProps) {
     redirect("/auth/login");
   }
 
-  if (user.id !== params.id) {
+  if (user.id !== (await params).id) {
     redirect("/auth/login");
   }
 
