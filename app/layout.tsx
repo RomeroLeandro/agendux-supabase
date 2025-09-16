@@ -3,6 +3,7 @@ import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import MainLayout from "@/components/layout/main/mainLayout";
 import { poppins, adineue } from "./fonts";
+import { GoogleCalendarProvider } from "@/context/google-calendar-context";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -51,14 +52,16 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="text-base">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <MainLayout>{children}</MainLayout>
-        </ThemeProvider>
+        <GoogleCalendarProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <MainLayout>{children}</MainLayout>
+          </ThemeProvider>
+        </GoogleCalendarProvider>
       </body>
     </html>
   );
