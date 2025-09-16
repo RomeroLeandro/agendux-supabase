@@ -8,17 +8,18 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 
 interface MessageConfig {
   active: boolean;
   message: string;
+  timing?: string;
 }
 
 interface Messages {
@@ -32,54 +33,64 @@ export function AutomaticMessages() {
   const [messages, setMessages] = useState<Messages>({
     confirmation: {
       active: true,
-      message: "¡Hola {{nombre}}! Tu cita para {{servicio}} a las {{hora}} ha sido confirmada. Te esperamos!"
+      message:
+        "¡Hola {{nombre}}! Tu cita para {{servicio}} a las {{hora}} ha sido confirmada. Te esperamos!",
+      timing: "Inmediatamente al agendar",
     },
     reminder: {
       active: false,
-      message: "Hola {{nombre}}. Tienes una cita mañana a las {{hora}} {{fecha}}. Si no puedes venir, por favor avísanos con anticipación."
+      message:
+        "Hola {{nombre}}. Tienes una cita mañana a las {{hora}} {{fecha}}. Si no puedes venir, por favor avísanos con anticipación.",
     },
     firstReminder: {
       active: true,
-      message: "¡Hola {{nombre}}! Estamos organizando nuestras actividades para las próximas semanas."
+      message:
+        "¡Hola {{nombre}}! Estamos organizando nuestras actividades para las próximas semanas.",
+      timing: "24 horas antes",
     },
     postCita: {
       active: true,
-      message: "Gracias por tu visita. ¡Cuéntanos qué te pareció nuestra atención! [llave de valoración]"
-    }
+      message:
+        "Gracias por tu visita. ¡Cuéntanos qué te pareció nuestra atención! [llave de valoración]",
+      timing: "1 hora después",
+    },
   });
 
   const [secondReminderConfig, setSecondReminderConfig] = useState({
     active: false,
     timeValue: "1",
-    timeUnit: "Horas antes"
+    timeUnit: "Horas antes",
   });
 
   const [rescheduleConfig, setRescheduleConfig] = useState({
-    active: false
+    active: false,
   });
 
   const availableVariables = [
     "{{nombre}}",
-    "{{apellido}}", 
+    "{{apellido}}",
     "{{servicio}}",
     "{{fecha}}",
     "{{hora}}",
-    "{{precio}}"
+    "{{precio}}",
   ];
 
-  const handleMessageChange = (type: keyof Messages, field: keyof MessageConfig, value: string | boolean) => {
-    setMessages(prev => ({
+  const handleMessageChange = (
+    type: keyof Messages,
+    field: keyof MessageConfig,
+    value: string | boolean
+  ) => {
+    setMessages((prev) => ({
       ...prev,
       [type]: {
         ...prev[type],
-        [field]: value
-      }
+        [field]: value,
+      },
     }));
   };
 
   const handleSave = () => {
     console.log("Guardando configuración de mensajes:", messages);
-    // Aquí se implementará la lógica de guardado
   };
 
   return (
@@ -106,7 +117,9 @@ export function AutomaticMessages() {
         <Card className="p-4 bg-orange-50 border-orange-200">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-            <span className="font-medium text-orange-800">1er Recordatorio</span>
+            <span className="font-medium text-orange-800">
+              1er Recordatorio
+            </span>
           </div>
           <p className="text-sm text-orange-600 mt-1">24 horas</p>
         </Card>
@@ -124,31 +137,58 @@ export function AutomaticMessages() {
         {/* Mensaje de Confirmación */}
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
-            <div>
-              <Typography variant="heading-md" className="font-semibold">
-                Mensaje de Confirmación
-              </Typography>
-              <Typography variant="body-sm" className="text-muted-foreground">
-                Activo siempre
-              </Typography>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              <div>
+                <Typography variant="heading-md" className="font-semibold">
+                  Mensaje de Confirmación
+                </Typography>
+                <Typography variant="body-sm" className="text-muted-foreground">
+                  Se envía al momento de agendar la cita
+                </Typography>
+              </div>
             </div>
             <Switch
               checked={messages.confirmation.active}
-              onCheckedChange={(checked: boolean) => handleMessageChange('confirmation', 'active', checked)}
+              onCheckedChange={(checked: boolean) =>
+                handleMessageChange("confirmation", "active", checked)
+              }
             />
           </div>
 
           <div className="space-y-4">
             <div>
+              <Label>Activar mensaje</Label>
+            </div>
+            <div>
               <Label>¿Cuándo enviar?</Label>
-              <p className="text-sm text-muted-foreground">Inmediatamente</p>
+              <Select
+                value={messages.confirmation.timing}
+                onValueChange={(value: string) =>
+                  handleMessageChange("confirmation", "timing", value)
+                }
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Seleccionar tiempo..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Inmediatamente al agendar">
+                    Inmediatamente al agendar
+                  </SelectItem>
+                  <SelectItem value="1 hora antes">1 hora antes</SelectItem>
+                  <SelectItem value="2 horas antes">2 horas antes</SelectItem>
+                  <SelectItem value="4 horas antes">4 horas antes</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label htmlFor="confirmation-message">Mensaje</Label>
               <Textarea
                 id="confirmation-message"
                 value={messages.confirmation.message}
-                onChange={(e) => handleMessageChange('confirmation', 'message', e.target.value)}
+                onChange={(e) =>
+                  handleMessageChange("confirmation", "message", e.target.value)
+                }
                 rows={3}
                 className="mt-1"
               />
@@ -159,31 +199,61 @@ export function AutomaticMessages() {
         {/* Primer Recordatorio */}
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
-            <div>
-              <Typography variant="heading-md" className="font-semibold">
-                Primer Recordatorio
-              </Typography>
-              <Typography variant="body-sm" className="text-muted-foreground">
-                Envío automático de recordatorio antes de la cita
-              </Typography>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+              <div>
+                <Typography variant="heading-md" className="font-semibold">
+                  Primer Recordatorio
+                </Typography>
+                <Typography variant="body-sm" className="text-muted-foreground">
+                  Recordatorio principal de la cita
+                </Typography>
+              </div>
             </div>
             <Switch
               checked={messages.firstReminder.active}
-              onCheckedChange={(checked: boolean) => handleMessageChange('firstReminder', 'active', checked)}
+              onCheckedChange={(checked: boolean) =>
+                handleMessageChange("firstReminder", "active", checked)
+              }
             />
           </div>
 
           <div className="space-y-4">
             <div>
+              <Label>Activar recordatorio</Label>
+            </div>
+            <div>
               <Label>¿Cuándo enviar?</Label>
-              <p className="text-sm text-muted-foreground">24 horas antes</p>
+              <Select
+                value={messages.firstReminder.timing}
+                onValueChange={(value: string) =>
+                  handleMessageChange("firstReminder", "timing", value)
+                }
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Seleccionar tiempo..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="2 horas antes">2 horas antes</SelectItem>
+                  <SelectItem value="4 horas antes">4 horas antes</SelectItem>
+                  <SelectItem value="12 horas antes">12 horas antes</SelectItem>
+                  <SelectItem value="24 horas antes">24 horas antes</SelectItem>
+                  <SelectItem value="48 horas antes">48 horas antes</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label htmlFor="first-reminder-message">Mensaje</Label>
               <Textarea
                 id="first-reminder-message"
                 value={messages.firstReminder.message}
-                onChange={(e) => handleMessageChange('firstReminder', 'message', e.target.value)}
+                onChange={(e) =>
+                  handleMessageChange(
+                    "firstReminder",
+                    "message",
+                    e.target.value
+                  )
+                }
                 rows={3}
                 className="mt-1"
               />
@@ -204,7 +274,12 @@ export function AutomaticMessages() {
             </div>
             <Switch
               checked={secondReminderConfig.active}
-              onCheckedChange={(checked: boolean) => setSecondReminderConfig(prev => ({ ...prev, active: checked }))}
+              onCheckedChange={(checked: boolean) =>
+                setSecondReminderConfig((prev) => ({
+                  ...prev,
+                  active: checked,
+                }))
+              }
             />
           </div>
 
@@ -216,12 +291,22 @@ export function AutomaticMessages() {
                   <Input
                     type="number"
                     value={secondReminderConfig.timeValue}
-                    onChange={(e) => setSecondReminderConfig(prev => ({ ...prev, timeValue: e.target.value }))}
+                    onChange={(e) =>
+                      setSecondReminderConfig((prev) => ({
+                        ...prev,
+                        timeValue: e.target.value,
+                      }))
+                    }
                     className="flex-1"
                   />
                   <Select
                     value={secondReminderConfig.timeUnit}
-                    onValueChange={(value: string) => setSecondReminderConfig(prev => ({ ...prev, timeUnit: value }))}
+                    onValueChange={(value: string) =>
+                      setSecondReminderConfig((prev) => ({
+                        ...prev,
+                        timeUnit: value,
+                      }))
+                    }
                   >
                     <SelectTrigger className="flex-1">
                       <SelectValue />
@@ -239,7 +324,9 @@ export function AutomaticMessages() {
               <Textarea
                 id="second-reminder-message"
                 value={messages.reminder.message}
-                onChange={(e) => handleMessageChange('reminder', 'message', e.target.value)}
+                onChange={(e) =>
+                  handleMessageChange("reminder", "message", e.target.value)
+                }
                 rows={3}
                 className="mt-1"
               />
@@ -247,34 +334,67 @@ export function AutomaticMessages() {
           </div>
         </Card>
 
-        {/* Mensaje Post-Cita */}
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
-            <div>
-              <Typography variant="heading-md" className="font-semibold">
-                Mensaje Post-Cita
-              </Typography>
-              <Typography variant="body-sm" className="text-muted-foreground">
-                Mensaje de seguimiento después de la consulta
-              </Typography>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+              <div>
+                <Typography variant="heading-md" className="font-semibold">
+                  Mensaje Post-Cita
+                </Typography>
+                <Typography variant="body-sm" className="text-muted-foreground">
+                  Mensaje de agradecimiento después de la consulta
+                </Typography>
+              </div>
             </div>
             <Switch
               checked={messages.postCita.active}
-              onCheckedChange={(checked: boolean) => handleMessageChange('postCita', 'active', checked)}
+              onCheckedChange={(checked: boolean) =>
+                handleMessageChange("postCita", "active", checked)
+              }
             />
           </div>
 
           <div className="space-y-4">
             <div>
+              <Label>Activar mensaje</Label>
+            </div>
+            <div>
               <Label>¿Cuándo enviar?</Label>
-              <p className="text-sm text-muted-foreground">1 hora después</p>
+              <Select
+                value={messages.postCita.timing}
+                onValueChange={(value: string) =>
+                  handleMessageChange("postCita", "timing", value)
+                }
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Seleccionar tiempo..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1 hora después">1 hora después</SelectItem>
+                  <SelectItem value="2 horas después">
+                    2 horas después
+                  </SelectItem>
+                  <SelectItem value="4 horas después">
+                    4 horas después
+                  </SelectItem>
+                  <SelectItem value="12 horas después">
+                    12 horas después
+                  </SelectItem>
+                  <SelectItem value="24 horas después">
+                    24 horas después
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label htmlFor="post-cita-message">Mensaje</Label>
               <Textarea
                 id="post-cita-message"
                 value={messages.postCita.message}
-                onChange={(e) => handleMessageChange('postCita', 'message', e.target.value)}
+                onChange={(e) =>
+                  handleMessageChange("postCita", "message", e.target.value)
+                }
                 rows={3}
                 className="mt-1"
               />
@@ -295,7 +415,9 @@ export function AutomaticMessages() {
             </div>
             <Switch
               checked={rescheduleConfig.active}
-              onCheckedChange={(checked: boolean) => setRescheduleConfig(prev => ({ ...prev, active: checked }))}
+              onCheckedChange={(checked: boolean) =>
+                setRescheduleConfig((prev) => ({ ...prev, active: checked }))
+              }
             />
           </div>
 
@@ -313,14 +435,18 @@ export function AutomaticMessages() {
             Variables Disponibles
           </Typography>
           <Typography variant="body-sm" className="text-muted-foreground mb-4">
-            Usa estas variables en tus mensajes para personalizarlos automáticamente
+            Usa estas variables en tus mensajes para personalizarlos
+            automáticamente
           </Typography>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {availableVariables.map((variable) => (
-              <div key={variable} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+              <div
+                key={variable}
+                className="flex items-center justify-between p-2 bg-gray-50 rounded"
+              >
                 <code className="text-sm font-mono">{variable}</code>
-                <Button 
+                <Button
                   onClick={() => navigator.clipboard.writeText(variable)}
                   className="text-xs"
                 >
@@ -329,16 +455,20 @@ export function AutomaticMessages() {
               </div>
             ))}
           </div>
-          
+
           <p className="text-xs text-muted-foreground mt-4">
-            Tip: Las variables de mensajes se reemplazarán automáticamente con los datos reales de cada paciente.
+            Tip: Las variables de mensajes se reemplazarán automáticamente con
+            los datos reales de cada paciente.
           </p>
         </Card>
       </div>
 
       {/* Botón de guardar */}
       <div className="pt-8 flex justify-end">
-        <Button onClick={handleSave} className="bg-purple-600 hover:bg-purple-700">
+        <Button
+          onClick={handleSave}
+          className="bg-purple-600 hover:bg-purple-700"
+        >
           Guardar Cambios
         </Button>
       </div>

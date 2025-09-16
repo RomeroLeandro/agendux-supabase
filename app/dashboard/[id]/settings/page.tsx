@@ -5,11 +5,14 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { SettingsContent } from "./settings-content";
 
-export default async function SettingsPage({
-  params,
-}: {
+interface PageProps {
   params: Promise<{ id: string }>;
-}) {
+}
+
+export default async function SettingsPage({ params }: PageProps) {
+  // Await params para obtener el id
+  const { id } = await params;
+
   const supabase = await createClient();
 
   const {
@@ -20,11 +23,11 @@ export default async function SettingsPage({
     redirect("/auth/login");
   }
 
-  if (user.id !== (await params).id) {
+  if (user.id !== id) {
     redirect("/auth/login");
   }
 
-  // Obtener perfil del usuario
+  // Obtener perfil del usuario usando el ID directamente
   const { data: profile } = await supabase
     .from("profiles")
     .select(
@@ -33,7 +36,7 @@ export default async function SettingsPage({
       professions(id, category, name)
     `
     )
-    .eq("auth_users_id", user.id)
+    .eq("id", user.id)
     .single();
 
   // Obtener todas las profesiones

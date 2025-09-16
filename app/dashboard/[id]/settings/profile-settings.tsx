@@ -59,15 +59,27 @@ export function ProfileSettings({
     profession_id: "",
   });
 
+  console.log("=== PROFILE-SETTINGS DEBUG ===");
+  console.log("Profile prop:", profile);
+  console.log("Current form data:", formData);
+  console.log("Component rendered at:", new Date().toISOString());
   // Cargar datos del perfil cuando el componente se monta
   useEffect(() => {
+    console.log("=== USEEFFECT TRIGGERED ===");
+    console.log("Profile in useEffect:", profile);
+
     if (profile) {
-      setFormData({
+      console.log("Profile exists, setting form data...");
+      const newFormData = {
         first_name: profile.first_name || "",
         last_name: profile.last_name || "",
         phone: profile.phone || "",
         profession_id: profile.profession_id?.toString() || "",
-      });
+      };
+      console.log("New form data:", newFormData);
+      setFormData(newFormData);
+    } else {
+      console.log("No profile data available");
     }
   }, [profile]);
 

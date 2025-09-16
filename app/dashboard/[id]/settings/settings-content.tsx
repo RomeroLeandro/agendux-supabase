@@ -34,57 +34,51 @@ export function SettingsContent({
 }: SettingsContentProps) {
   const [activeTab, setActiveTab] = useState("profile");
 
-  const renderContent = () => {
-    switch (activeTab) {
-      case "profile":
-        return (
-          <ProfileSettings
-            profile={profile}
-            professions={professions}
-            userId={userId}
-          />
-        );
-      case "messages":
-        return <AutomaticMessages />;
-      case "google":
-        return (
-          <div className="text-center py-12">
-            <h3 className="text-lg font-semibold text-muted-foreground">
-              Google Calendar (próximamente)
-            </h3>
-          </div>
-        );
-      case "notifications":
-        return (
-          <div className="text-center py-12">
-            <h3 className="text-lg font-semibold text-muted-foreground">
-              Notificaciones (próximamente)
-            </h3>
-          </div>
-        );
-      case "security":
-        return (
-          <div className="text-center py-12">
-            <h3 className="text-lg font-semibold text-muted-foreground">
-              Seguridad (próximamente)
-            </h3>
-          </div>
-        );
-      default:
-        return (
-          <ProfileSettings
-            profile={profile}
-            professions={professions}
-            userId={userId}
-          />
-        );
-    }
-  };
+  // AGREGAR LOGGING DETALLADO
+  console.log("=== SETTINGS-CONTENT DEBUG ===");
+  console.log("Profile received:", profile);
+  console.log("Professions received:", professions);
+  console.log("User ID received:", userId);
+  console.log("Active tab:", activeTab);
 
   return (
     <>
+      {/* Debug panel temporal */}
+      <div className="mb-4 p-4 bg-blue-100 text-xs">
+        <p>
+          <strong>DEBUG SETTINGS-CONTENT:</strong>
+        </p>
+        <p>Profile received: {profile ? "YES" : "NO"}</p>
+        <p>Profile data: {JSON.stringify(profile)}</p>
+        <p>Professions count: {professions?.length}</p>
+      </div>
+
       <SettingsTabs activeTab={activeTab} onTabChange={setActiveTab} />
-      <div className="mt-8">{renderContent()}</div>
+      <div className="mt-8">
+        <div className={activeTab === "profile" ? "block" : "hidden"}>
+          <ProfileSettings
+            profile={profile}
+            professions={professions}
+            userId={userId}
+          />
+        </div>
+
+        <div className={activeTab === "messages" ? "block" : "hidden"}>
+          <AutomaticMessages />
+        </div>
+
+        <div className={activeTab === "google" ? "block" : "hidden"}>
+          <div>Google Calendar (próximamente)</div>
+        </div>
+
+        <div className={activeTab === "notifications" ? "block" : "hidden"}>
+          <div>Notificaciones (próximamente)</div>
+        </div>
+
+        <div className={activeTab === "security" ? "block" : "hidden"}>
+          <div>Seguridad (próximamente)</div>
+        </div>
+      </div>
     </>
   );
 }
