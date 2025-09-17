@@ -4,6 +4,9 @@ import { useState } from "react";
 import { SettingsTabs } from "./tab-settings";
 import { ProfileSettings } from "./profile-settings";
 import { AutomaticMessages } from "./automatic-messages";
+import { GoogleCalendar } from "./google-calendar";
+import { Notifications } from "./notifications";
+import { Security } from "./security";
 
 interface Profile {
   id?: number;
@@ -34,25 +37,8 @@ export function SettingsContent({
 }: SettingsContentProps) {
   const [activeTab, setActiveTab] = useState("profile");
 
-  // AGREGAR LOGGING DETALLADO
-  console.log("=== SETTINGS-CONTENT DEBUG ===");
-  console.log("Profile received:", profile);
-  console.log("Professions received:", professions);
-  console.log("User ID received:", userId);
-  console.log("Active tab:", activeTab);
-
   return (
     <>
-      {/* Debug panel temporal */}
-      <div className="mb-4 p-4 bg-blue-100 text-xs">
-        <p>
-          <strong>DEBUG SETTINGS-CONTENT:</strong>
-        </p>
-        <p>Profile received: {profile ? "YES" : "NO"}</p>
-        <p>Profile data: {JSON.stringify(profile)}</p>
-        <p>Professions count: {professions?.length}</p>
-      </div>
-
       <SettingsTabs activeTab={activeTab} onTabChange={setActiveTab} />
       <div className="mt-8">
         <div className={activeTab === "profile" ? "block" : "hidden"}>
@@ -68,15 +54,15 @@ export function SettingsContent({
         </div>
 
         <div className={activeTab === "google" ? "block" : "hidden"}>
-          <div>Google Calendar (próximamente)</div>
+          <GoogleCalendar />
         </div>
 
         <div className={activeTab === "notifications" ? "block" : "hidden"}>
-          <div>Notificaciones (próximamente)</div>
+          <Notifications />
         </div>
 
         <div className={activeTab === "security" ? "block" : "hidden"}>
-          <div>Seguridad (próximamente)</div>
+          <Security />
         </div>
       </div>
     </>
