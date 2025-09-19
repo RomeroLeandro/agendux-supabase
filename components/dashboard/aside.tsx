@@ -78,7 +78,7 @@ export const Aside = ({
       icon: MessageSquare,
       badge: unreadMessagesCount,
     },
-    { path: "self-schedule", label: "Auto-Agenda", icon: Globe },
+    { path: "auto-schedule", label: "Auto-Agenda", icon: Globe },
     { path: "subscription", label: "Suscripción", icon: CreditCard },
     { path: "settings", label: "Configuración", icon: Settings },
   ];

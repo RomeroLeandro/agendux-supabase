@@ -23,7 +23,9 @@ export default function ConditionalHeader({
   ];
 
   const shouldHideHeader =
-    hideHeaderRoutes.includes(pathname) || pathname.startsWith("/dashboard");
+    hideHeaderRoutes.includes(pathname) ||
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/book");
 
   return (
     <>
