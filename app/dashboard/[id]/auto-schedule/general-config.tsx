@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { AlertCircle, CheckCircle, Loader2 } from "lucide-react";
+import { useCallback } from "react";
 
 interface Profile {
   id: string;
@@ -64,6 +65,59 @@ export function GeneralConfig({
     max_appointments_per_day: 8,
   });
 
+  const checkSlugAvailability = useCallback(
+    async (slug: string) => {
+      if (!slug || slug.length < 3) {
+        setSlugAvailability({
+          available: false,
+          message: "La URL debe tener al menos 3 caracteres",
+        });
+        return;
+      }
+
+      const slugRegex = /^[a-z0-9-]+$/;
+      if (!slugRegex.test(slug)) {
+        setSlugAvailability({
+          available: false,
+          message: "Solo se permiten letras minúsculas, números y guiones",
+        });
+        return;
+      }
+
+      setIsCheckingSlug(true);
+
+      try {
+        const { data, error } = await supabase
+          .from("auto_agenda_config")
+          .select("user_id")
+          .eq("url_slug", slug)
+          .single();
+
+        if (error && error.code === "PGRST116") {
+          setSlugAvailability({ available: true, message: "URL disponible" });
+        } else if (data && data.user_id === userId) {
+          setSlugAvailability({
+            available: true,
+            message: "Esta es tu URL actual",
+          });
+        } else if (data) {
+          setSlugAvailability({
+            available: false,
+            message: "Esta URL ya está en uso",
+          });
+        }
+      } catch {
+        setSlugAvailability({
+          available: null,
+          message: "Error al verificar disponibilidad",
+        });
+      } finally {
+        setIsCheckingSlug(false);
+      }
+    },
+    [supabase, userId]
+  );
+
   useEffect(() => {
     if (config) {
       setFormData({
@@ -102,57 +156,7 @@ export function GeneralConfig({
       checkSlugAvailability(defaultSlug);
     }
     setIsInitialized(true);
-  }, [config, profile]);
-
-  const checkSlugAvailability = async (slug: string) => {
-    if (!slug || slug.length < 3) {
-      setSlugAvailability({
-        available: false,
-        message: "La URL debe tener al menos 3 caracteres",
-      });
-      return;
-    }
-
-    const slugRegex = /^[a-z0-9-]+$/;
-    if (!slugRegex.test(slug)) {
-      setSlugAvailability({
-        available: false,
-        message: "Solo se permiten letras minúsculas, números y guiones",
-      });
-      return;
-    }
-
-    setIsCheckingSlug(true);
-
-    try {
-      const { data, error } = await supabase
-        .from("auto_agenda_config")
-        .select("user_id")
-        .eq("url_slug", slug)
-        .single();
-
-      if (error && error.code === "PGRST116") {
-        setSlugAvailability({ available: true, message: "URL disponible" });
-      } else if (data && data.user_id === userId) {
-        setSlugAvailability({
-          available: true,
-          message: "Esta es tu URL actual",
-        });
-      } else if (data) {
-        setSlugAvailability({
-          available: false,
-          message: "Esta URL ya está en uso",
-        });
-      }
-    } catch (error) {
-      setSlugAvailability({
-        available: null,
-        message: "Error al verificar disponibilidad",
-      });
-    } finally {
-      setIsCheckingSlug(false);
-    }
-  };
+  }, [config, profile, checkSlugAvailability]);
 
   const handleInputChange = (
     field: keyof typeof formData,
@@ -219,7 +223,13 @@ export function GeneralConfig({
         alert("Configuración guardada exitosamente");
         window.location.reload();
       } catch (error) {
-        alert("Error al guardar la configuración: " + (error as any).message);
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : typeof error === "string"
+            ? error
+            : "Error desconocido";
+        alert("Error al guardar la configuración: " + errorMessage);
       }
     });
   };

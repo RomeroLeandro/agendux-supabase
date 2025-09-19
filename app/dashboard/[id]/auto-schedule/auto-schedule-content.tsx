@@ -39,12 +39,12 @@ interface AutoAgendaContentProps {
   bookingUrl: string;
 }
 
-export function AutoAgendaContent({ 
-  config, 
-  services, 
-  profile, 
-  userId, 
-  bookingUrl 
+export function AutoAgendaContent({
+  config,
+  services,
+  profile,
+  userId,
+  bookingUrl,
 }: AutoAgendaContentProps) {
   const [activeTab, setActiveTab] = useState("general");
 
@@ -53,26 +53,26 @@ export function AutoAgendaContent({
       <AutoAgendaTabs activeTab={activeTab} onTabChange={setActiveTab} />
       <div className="mt-8">
         <div className={activeTab === "general" ? "block" : "hidden"}>
-          <GeneralConfig 
+          <GeneralConfig
             config={config}
             profile={profile}
             userId={userId}
             bookingUrl={bookingUrl}
           />
         </div>
-        
+
         <div className={activeTab === "services" ? "block" : "hidden"}>
           <div>Servicios (en desarrollo)</div>
         </div>
-        
+
         <div className={activeTab === "schedules" ? "block" : "hidden"}>
           <div>Horarios (en desarrollo)</div>
         </div>
-        
+
         <div className={activeTab === "fields" ? "block" : "hidden"}>
           <div>Campos (en desarrollo)</div>
         </div>
-        
+
         <div className={activeTab === "design" ? "block" : "hidden"}>
           <div>Diseño (en desarrollo)</div>
         </div>
