@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Typography } from "@/components/ui/typography";
 import { Switch } from "@/components/ui/switch";
@@ -10,19 +10,9 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { AlertCircle, CheckCircle, Loader2 } from "lucide-react";
-import { useCallback } from "react";
+import { Profile, AutoAgendaConfig } from "@/app/types";
 
-interface Profile {
-  id: string;
-  first_name?: string;
-  last_name?: string;
-  phone?: string;
-  profession_id?: number;
-}
-
-interface AutoAgendaConfig {
-  id?: string;
-  user_id: string;
+interface FormDataState {
   is_active: boolean;
   url_slug: string;
   page_title: string;
@@ -55,7 +45,7 @@ export function GeneralConfig({
 
   const supabase = createClient();
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormDataState>({
     is_active: true,
     url_slug: "",
     page_title: "",
@@ -64,6 +54,91 @@ export function GeneralConfig({
     min_hours_advance: 2,
     max_appointments_per_day: 8,
   });
+
+  // El useEffect para inicializar los datos no cambia.
+  useEffect(() => {
+    const checkSlugAndInitForm = async (slugToCheck: string) => {
+      if (!slugToCheck || slugToCheck.length < 3) {
+        setSlugAvailability({
+          available: false,
+          message: "La URL debe tener al menos 3 caracteres",
+        });
+        return;
+      }
+      const slugRegex = /^[a-z0-9-]+$/;
+      if (!slugRegex.test(slugToCheck)) {
+        setSlugAvailability({
+          available: false,
+          message: "Solo se permiten letras minúsculas, números y guiones",
+        });
+        return;
+      }
+      setIsCheckingSlug(true);
+      try {
+        const { data, error } = await supabase
+          .from("auto_agenda_config")
+          .select("user_id")
+          .eq("url_slug", slugToCheck)
+          .single();
+        if (error && error.code === "PGRST116") {
+          setSlugAvailability({ available: true, message: "URL disponible" });
+        } else if (data && data.user_id === userId) {
+          setSlugAvailability({
+            available: true,
+            message: "Esta es tu URL actual",
+          });
+        } else if (data) {
+          setSlugAvailability({
+            available: false,
+            message: "Esta URL ya está en uso",
+          });
+        }
+      } catch {
+        setSlugAvailability({
+          available: null,
+          message: "Error al verificar disponibilidad",
+        });
+      } finally {
+        setIsCheckingSlug(false);
+      }
+    };
+
+    if (config) {
+      setFormData({
+        is_active: config.is_active,
+        url_slug: config.url_slug,
+        page_title: config.page_title,
+        page_description: config.page_description,
+        max_days_advance: config.max_days_advance,
+        min_hours_advance: config.min_hours_advance,
+        max_appointments_per_day: config.max_appointments_per_day,
+      });
+      setSlugAvailability({
+        available: true,
+        message: "Esta es tu URL actual",
+      });
+    } else if (profile) {
+      const firstName = profile.first_name || "Dr.";
+      const lastName = profile.last_name || "Profesional";
+      const defaultSlug =
+        `${firstName.toLowerCase()}-${lastName.toLowerCase()}`.replace(
+          /\s+/g,
+          "-"
+        );
+      setFormData({
+        is_active: true,
+        url_slug: defaultSlug,
+        page_title: `${firstName} ${lastName} - Médico General`,
+        page_description:
+          "Agenda tu cita médica de forma rápida y sencilla. Atención personalizada y profesional.",
+        max_days_advance: 30,
+        min_hours_advance: 2,
+        max_appointments_per_day: 8,
+      });
+      checkSlugAndInitForm(defaultSlug);
+    }
+    setIsInitialized(true);
+  }, [config, profile, userId, supabase]);
 
   const checkSlugAvailability = useCallback(
     async (slug: string) => {
@@ -74,7 +149,6 @@ export function GeneralConfig({
         });
         return;
       }
-
       const slugRegex = /^[a-z0-9-]+$/;
       if (!slugRegex.test(slug)) {
         setSlugAvailability({
@@ -83,16 +157,13 @@ export function GeneralConfig({
         });
         return;
       }
-
       setIsCheckingSlug(true);
-
       try {
         const { data, error } = await supabase
           .from("auto_agenda_config")
           .select("user_id")
           .eq("url_slug", slug)
           .single();
-
         if (error && error.code === "PGRST116") {
           setSlugAvailability({ available: true, message: "URL disponible" });
         } else if (data && data.user_id === userId) {
@@ -118,78 +189,14 @@ export function GeneralConfig({
     [supabase, userId]
   );
 
-  useEffect(() => {
-    if (config) {
-      setFormData({
-        is_active: config.is_active,
-        url_slug: config.url_slug,
-        page_title: config.page_title,
-        page_description: config.page_description,
-        max_days_advance: config.max_days_advance,
-        min_hours_advance: config.min_hours_advance,
-        max_appointments_per_day: config.max_appointments_per_day,
-      });
-      setSlugAvailability({
-        available: true,
-        message: "Esta es tu URL actual",
-      });
-    } else {
-      const firstName = profile?.first_name || "Dr.";
-      const lastName = profile?.last_name || "Profesional";
-      const defaultSlug =
-        `${firstName.toLowerCase()}-${lastName.toLowerCase()}`.replace(
-          /\s+/g,
-          "-"
-        );
-
-      setFormData({
-        is_active: true,
-        url_slug: defaultSlug,
-        page_title: `${firstName} ${lastName} - Médico General`,
-        page_description:
-          "Agenda tu cita médica de forma rápida y sencilla. Atención personalizada y profesional.",
-        max_days_advance: 30,
-        min_hours_advance: 2,
-        max_appointments_per_day: 8,
-      });
-
-      checkSlugAvailability(defaultSlug);
-    }
-    setIsInitialized(true);
-  }, [config, profile, checkSlugAvailability]);
-
-  const handleInputChange = (
-    field: keyof typeof formData,
-    value: string | number | boolean
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-
-    if (field === "url_slug" && typeof value === "string") {
-      const cleanSlug = value
-        .toLowerCase()
-        .replace(/[^a-z0-9-]/g, "")
-        .replace(/--+/g, "-");
-      if (cleanSlug !== value) {
-        setFormData((prev) => ({ ...prev, url_slug: cleanSlug }));
-      }
-
-      const timeoutId = setTimeout(() => {
-        checkSlugAvailability(cleanSlug);
-      }, 500);
-
-      return () => clearTimeout(timeoutId);
-    }
-  };
-
   const handleSave = async () => {
-    if (!slugAvailability.available) {
+    if (
+      slugAvailability.available === false &&
+      formData.url_slug !== config?.url_slug
+    ) {
       alert("Por favor corrige la URL antes de guardar");
       return;
     }
-
     startTransition(async () => {
       try {
         if (config?.id) {
@@ -197,38 +204,19 @@ export function GeneralConfig({
             .from("auto_agenda_config")
             .update(formData)
             .eq("id", config.id);
-
-          if (error) {
-            if (error.code === "23505") {
-              alert("Esta URL ya está en uso por otro profesional");
-              return;
-            }
-            throw error;
-          }
+          if (error) throw error;
         } else {
           const { error } = await supabase.from("auto_agenda_config").insert({
             ...formData,
             user_id: userId,
           });
-
-          if (error) {
-            if (error.code === "23505") {
-              alert("Esta URL ya está en uso por otro profesional");
-              return;
-            }
-            throw error;
-          }
+          if (error) throw error;
         }
-
         alert("Configuración guardada exitosamente");
         window.location.reload();
       } catch (error) {
         const errorMessage =
-          error instanceof Error
-            ? error.message
-            : typeof error === "string"
-            ? error
-            : "Error desconocido";
+          error instanceof Error ? error.message : "Error desconocido";
         alert("Error al guardar la configuración: " + errorMessage);
       }
     });
@@ -246,7 +234,6 @@ export function GeneralConfig({
 
   return (
     <div className="space-y-6">
-      {/* Configuración General */}
       <div>
         <div className="flex items-center gap-3 mb-4">
           <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -261,7 +248,6 @@ export function GeneralConfig({
         </Typography>
 
         <div className="space-y-6">
-          {/* Estado de la Auto-Agenda */}
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -274,14 +260,13 @@ export function GeneralConfig({
               </div>
               <Switch
                 checked={formData.is_active}
-                onCheckedChange={(checked) =>
-                  handleInputChange("is_active", checked)
-                }
+                onCheckedChange={(checked) => {
+                  setFormData((prev) => ({ ...prev, is_active: checked }));
+                }}
               />
             </div>
           </Card>
 
-          {/* URL Personalizada */}
           <div className="space-y-2">
             <Label htmlFor="url_slug">URL Personalizada</Label>
             <div className="flex">
@@ -297,7 +282,18 @@ export function GeneralConfig({
               <Input
                 id="url_slug"
                 value={formData.url_slug}
-                onChange={(e) => handleInputChange("url_slug", e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  const cleanSlug = value
+                    .toLowerCase()
+                    .replace(/[^a-z0-9-]/g, "")
+                    .replace(/--+/g, "-");
+                  setFormData((prev) => ({ ...prev, url_slug: cleanSlug }));
+                  const timeoutId = setTimeout(() => {
+                    checkSlugAvailability(cleanSlug);
+                  }, 500);
+                  return () => clearTimeout(timeoutId);
+                }}
                 disabled={isDisabled}
                 className={`rounded-l-none ${
                   isDisabled ? "opacity-50 cursor-not-allowed" : ""
@@ -336,7 +332,6 @@ export function GeneralConfig({
             </Typography>
           </div>
 
-          {/* Título de la Página */}
           <div className="space-y-2">
             <Label
               htmlFor="page_title"
@@ -347,13 +342,17 @@ export function GeneralConfig({
             <Input
               id="page_title"
               value={formData.page_title}
-              onChange={(e) => handleInputChange("page_title", e.target.value)}
+              onChange={(e) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  page_title: e.target.value,
+                }));
+              }}
               disabled={isDisabled}
               className={isDisabled ? "opacity-50 cursor-not-allowed" : ""}
             />
           </div>
 
-          {/* Descripción */}
           <div className="space-y-2">
             <Label
               htmlFor="page_description"
@@ -365,9 +364,12 @@ export function GeneralConfig({
               id="page_description"
               rows={3}
               value={formData.page_description}
-              onChange={(e) =>
-                handleInputChange("page_description", e.target.value)
-              }
+              onChange={(e) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  page_description: e.target.value,
+                }));
+              }}
               disabled={isDisabled}
               className={isDisabled ? "opacity-50 cursor-not-allowed" : ""}
             />
@@ -375,7 +377,6 @@ export function GeneralConfig({
         </div>
       </div>
 
-      {/* Reglas de Reserva */}
       <div className={isDisabled ? "opacity-50" : ""}>
         <Typography
           variant="heading-lg"
@@ -406,12 +407,12 @@ export function GeneralConfig({
               id="max_days_advance"
               type="number"
               value={formData.max_days_advance}
-              onChange={(e) =>
-                handleInputChange(
-                  "max_days_advance",
-                  parseInt(e.target.value) || 30
-                )
-              }
+              onChange={(e) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  max_days_advance: parseInt(e.target.value) || 0,
+                }));
+              }}
               disabled={isDisabled}
               className={isDisabled ? "opacity-50 cursor-not-allowed" : ""}
             />
@@ -428,12 +429,12 @@ export function GeneralConfig({
               id="min_hours_advance"
               type="number"
               value={formData.min_hours_advance}
-              onChange={(e) =>
-                handleInputChange(
-                  "min_hours_advance",
-                  parseInt(e.target.value) || 2
-                )
-              }
+              onChange={(e) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  min_hours_advance: parseInt(e.target.value) || 0,
+                }));
+              }}
               disabled={isDisabled}
               className={isDisabled ? "opacity-50 cursor-not-allowed" : ""}
             />
@@ -450,12 +451,12 @@ export function GeneralConfig({
               id="max_appointments_per_day"
               type="number"
               value={formData.max_appointments_per_day}
-              onChange={(e) =>
-                handleInputChange(
-                  "max_appointments_per_day",
-                  parseInt(e.target.value) || 8
-                )
-              }
+              onChange={(e) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  max_appointments_per_day: parseInt(e.target.value) || 0,
+                }));
+              }}
               disabled={isDisabled}
               className={isDisabled ? "opacity-50 cursor-not-allowed" : ""}
             />
@@ -463,7 +464,6 @@ export function GeneralConfig({
         </div>
       </div>
 
-      {/* Indicador de estado cuando está desactivado */}
       {!formData.is_active && (
         <Card className="p-4 bg-red-50 border-red-200">
           <Typography variant="body-sm" className="text-red-800 mb-2">
@@ -476,7 +476,6 @@ export function GeneralConfig({
         </Card>
       )}
 
-      {/* Vista previa de URL solo cuando está activo */}
       {formData.is_active && (
         <Card className="p-4 bg-blue-50 border-blue-200">
           <Typography variant="body-sm" className="text-blue-800 mb-2">
@@ -489,11 +488,14 @@ export function GeneralConfig({
         </Card>
       )}
 
-      {/* Botón Guardar */}
       <div className="flex justify-end">
         <Button
           onClick={handleSave}
-          disabled={isPending || !slugAvailability.available}
+          disabled={
+            isPending ||
+            (slugAvailability.available === false &&
+              formData.url_slug !== config?.url_slug)
+          }
           className="bg-purple-600 hover:bg-purple-700"
         >
           {isPending ? "Guardando..." : "Guardar Cambios"}

@@ -1,46 +1,22 @@
+// 👇 1. Se mantiene porque usas hooks como useState, useEffect, etc.
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+// 👇 2. Importamos 'useParams' para leer la URL en un Client Component.
+import { useRouter, useParams } from "next/navigation";
 import { Typography } from "@/components/ui/typography";
 import { Button } from "@/components/ui/button";
 import { Copy, Eye } from "lucide-react";
 import { AutoAgendaContent } from "./auto-schedule-content";
 import { createClient } from "@/lib/supabase/client";
+import { Service, Profile, AutoAgendaConfig } from "@/app/types";
 
-interface Service {
-  id: number;
-  name: string;
-  description: string;
-  duration_minutes: number;
-}
+// 👇 3. Ya no se reciben 'params' como props, por lo que la interfaz se elimina.
+export default function AutoAgendaPage() {
+  // 👇 4. Esta es la forma correcta de obtener los parámetros en un Client Component.
+  const params = useParams();
+  const userId = params.id as string; // Extraemos el 'id' del objeto de parámetros.
 
-interface Profile {
-  id: string;
-  first_name?: string;
-  last_name?: string;
-  phone?: string;
-  profession_id?: number;
-}
-
-interface AutoAgendaConfig {
-  id?: string;
-  user_id: string;
-  is_active: boolean;
-  url_slug: string;
-  page_title: string;
-  page_description: string;
-  max_days_advance: number;
-  min_hours_advance: number;
-  max_appointments_per_day: number;
-}
-
-interface PageProps {
-  params: Promise<{ id: string }>;
-}
-
-export default function AutoAgendaPage({ params }: PageProps) {
-  const [userId, setUserId] = useState<string>("");
   const [autoAgendaConfig, setAutoAgendaConfig] =
     useState<AutoAgendaConfig | null>(null);
   const [services, setServices] = useState<Service[]>([]);
@@ -52,58 +28,57 @@ export default function AutoAgendaPage({ params }: PageProps) {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const resolvedParams = await params;
-        const { id } = resolvedParams;
-        setUserId(id);
-
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+        const { data: userData } = await supabase.auth.getUser();
+        const user = userData?.user;
 
         if (!user) {
           router.push("/auth/login");
           return;
         }
 
-        if (user.id !== id) {
+        // Verificamos si el usuario autenticado coincide con el de la URL
+        if (user.id !== userId) {
+          // Puedes redirigir o mostrar un error de acceso denegado
           router.push("/auth/login");
           return;
         }
 
-        // Obtener configuración de auto-agenda
+        // Cargar configuración de Auto-Agenda
         const { data: config } = await supabase
           .from("auto_agenda_config")
           .select("*")
           .eq("user_id", user.id)
           .maybeSingle();
-
         setAutoAgendaConfig(config);
 
-        // Obtener servicios del usuario
+        // Cargar servicios
         const { data: servicesData } = await supabase
           .from("services")
           .select("*")
           .eq("user_id", user.id);
-
         setServices(servicesData || []);
 
-        // Obtener perfil del usuario
+        // Cargar perfil
         const { data: profileData } = await supabase
           .from("profiles")
           .select("*")
           .eq("id", user.id)
           .single();
-
         setProfile(profileData);
       } catch (error) {
-        console.error("Error loading data:", error);
+        console.error("Error cargando los datos:", error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadData();
-  }, [params, router, supabase]);
+    if (userId) {
+      loadData();
+    } else {
+      // Si no hay userId en la URL, no hay nada que cargar.
+      setIsLoading(false);
+    }
+  }, [userId, router, supabase]);
 
   const generateBookingUrl = () => {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
@@ -121,7 +96,7 @@ export default function AutoAgendaPage({ params }: PageProps) {
       await navigator.clipboard.writeText(bookingUrl);
       alert("URL copiada al portapapeles");
     } catch (error) {
-      console.error("Error copying to clipboard:", error);
+      console.error("Error al copiar la URL:", error);
       alert("Error al copiar URL");
     }
   };
@@ -133,7 +108,7 @@ export default function AutoAgendaPage({ params }: PageProps) {
 
   if (isLoading) {
     return (
-      <div className="p-8 flex items-center justify-center">
+      <div className="p-8 flex items-center justify-center h-[calc(100vh-100px)]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
       </div>
     );
@@ -142,11 +117,11 @@ export default function AutoAgendaPage({ params }: PageProps) {
   const bookingUrl = generateBookingUrl();
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
+    <div className="p-4 sm:p-6 lg:p-8">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
         <div className="flex items-center gap-4">
-          <Button className="p-2" onClick={() => router.back()}>
-            <span className="ml-2 text-sm">← Volver</span>
+          <Button onClick={() => router.back()}>
+            <span className="text-sm">←</span>
           </Button>
           <div>
             <Typography variant="heading-xl" className="font-semibold">
@@ -159,9 +134,9 @@ export default function AutoAgendaPage({ params }: PageProps) {
           </div>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full sm:w-auto">
           <Button
-            className="flex items-center gap-2"
+            className="flex-1 sm:flex-none items-center gap-2"
             onClick={handleCopyUrl}
             disabled={!autoAgendaConfig?.is_active}
           >
@@ -169,7 +144,7 @@ export default function AutoAgendaPage({ params }: PageProps) {
             Copiar URL
           </Button>
           <Button
-            className="flex items-center gap-2"
+            className="flex-1 sm:flex-none items-center gap-2"
             onClick={handlePreview}
             disabled={!autoAgendaConfig?.is_active}
           >
@@ -181,7 +156,7 @@ export default function AutoAgendaPage({ params }: PageProps) {
 
       <AutoAgendaContent
         config={autoAgendaConfig}
-        services={services}
+        services={services || []}
         profile={profile}
         userId={userId}
         bookingUrl={bookingUrl}

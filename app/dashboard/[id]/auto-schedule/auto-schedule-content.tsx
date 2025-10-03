@@ -3,38 +3,18 @@
 import { useState } from "react";
 import { AutoAgendaTabs } from "./auto-schedule-tabs";
 import { GeneralConfig } from "./general-config";
+import { ServicesConfig } from "./service-config"; // Asumo que este componente existe
+import { Service, Profile, AutoAgendaConfig } from "@/app/types"; // Importamos Profile
+import { SchedulesConfig } from "./schedules-config";
+import { FieldsConfig } from "./fields-config";
+import { DesignConfig } from "./design-config";
 
-interface Service {
-  id: number;
-  name: string;
-  description: string;
-  duration_minutes: number;
-}
-
-interface Profile {
-  id: string;
-  first_name?: string;
-  last_name?: string;
-  phone?: string;
-  profession_id?: number;
-}
-
-interface AutoAgendaConfig {
-  id?: string;
-  user_id: string;
-  is_active: boolean;
-  url_slug: string;
-  page_title: string;
-  page_description: string;
-  max_days_advance: number;
-  min_hours_advance: number;
-  max_appointments_per_day: number;
-}
+// BORRA cualquier 'interface Profile {...}' que pueda haber aquí
 
 interface AutoAgendaContentProps {
   config: AutoAgendaConfig | null;
   services: Service[];
-  profile: Profile | null;
+  profile: Profile | null; // Ahora usa el tipo importado
   userId: string;
   bookingUrl: string;
 }
@@ -62,19 +42,20 @@ export function AutoAgendaContent({
         </div>
 
         <div className={activeTab === "services" ? "block" : "hidden"}>
-          <div>Servicios (en desarrollo)</div>
+          {/* Asumo que tienes un componente ServicesConfig, si no, reemplázalo */}
+          <ServicesConfig services={services} userId={userId} />
         </div>
 
         <div className={activeTab === "schedules" ? "block" : "hidden"}>
-          <div>Horarios (en desarrollo)</div>
+          <SchedulesConfig userId={userId} />
         </div>
 
         <div className={activeTab === "fields" ? "block" : "hidden"}>
-          <div>Campos (en desarrollo)</div>
+          <FieldsConfig userId={userId} />
         </div>
 
         <div className={activeTab === "design" ? "block" : "hidden"}>
-          <div>Diseño (en desarrollo)</div>
+          <DesignConfig userId={userId} config={config} />
         </div>
       </div>
     </>
