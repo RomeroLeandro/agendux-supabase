@@ -18,7 +18,7 @@ export default async function BookingPage({ params }: PageProps) {
     .from("auto_agenda_config")
     .select("*")
     .eq("url_slug", slug)
-    .eq("is_active", true) // Solo páginas activas
+    .eq("is_active", true)
     .single();
 
   console.log("Config query result:", { config, error });
@@ -28,7 +28,7 @@ export default async function BookingPage({ params }: PageProps) {
     notFound();
   }
 
-  // Obtener el perfil del profesional por separado
+  // Obtener el perfil del profesional
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select(
@@ -50,14 +50,50 @@ export default async function BookingPage({ params }: PageProps) {
     notFound();
   }
 
-  // Obtener servicios disponibles del profesional
+  // Obtener servicios ACTIVOS para auto-agenda
   const { data: services } = await supabase
     .from("services")
     .select("*")
     .eq("user_id", config.user_id)
+    .eq("is_active_for_auto_agenda", true)
     .order("name");
 
   console.log("Services found:", services?.length || 0);
+
+  // Obtener horarios laborales
+  const { data: workHours } = await supabase
+    .from("work_hours")
+    .select("*")
+    .eq("user_id", config.user_id)
+    .order("day_of_week");
+
+  console.log("Work hours found:", workHours?.length || 0);
+
+  // Obtener configuración de campos del formulario
+  const { data: formFields } = await supabase
+    .from("form_fields")
+    .select("*")
+    .eq("user_id", config.user_id);
+
+  console.log("Form fields found:", formFields?.length || 0);
+
+  // ===== OBTENER CITAS EXISTENTES =====
+  // Obtener todas las citas futuras (no canceladas) para validar disponibilidad
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const { data: existingAppointments } = await supabase
+    .from("appointments")
+    .select("appointment_datetime, duration_minutes, status")
+    .eq("user_id", config.user_id)
+    .gte("appointment_datetime", today.toISOString())
+    .neq("status", "cancelled")
+    .order("appointment_datetime");
+
+  console.log(
+    "Existing appointments found:",
+    existingAppointments?.length || 0
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -65,6 +101,9 @@ export default async function BookingPage({ params }: PageProps) {
         config={config}
         services={services || []}
         professional={profile}
+        workHours={workHours || []}
+        formFields={formFields || []}
+        existingAppointments={existingAppointments || []}
       />
     </div>
   );
@@ -77,9 +116,9 @@ export async function generateMetadata({ params }: PageProps) {
 
   const { data: config } = await supabase
     .from("auto_agenda_config")
-    .select("page_title, page_description")
+    .select("page_title, page_description, logo_url")
     .eq("url_slug", slug)
-    .eq("is_active", true) // Solo páginas activas
+    .eq("is_active", true)
     .single();
 
   return {

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { CalendarView } from "./calendar-view";
 import { useGoogleCalendar } from "@/context/google-calendar-context";
-import { useAutoSync } from "@/hooks/use-auto-sync";
+// import { useAutoSync } from "@/hooks/use-auto-sync";
 import { createClient } from "@/lib/supabase/client";
 
 interface Appointment {
@@ -42,7 +42,7 @@ export function CalendarWithGoogleEvents({
     setConnected,
   } = useGoogleCalendar();
 
-  const { syncExistingAppointments } = useAutoSync();
+  // const { syncExistingAppointments } = useAutoSync();
 
   // Función temporal para forzar verificación directa
   const forceCheckConnection = async () => {
@@ -107,10 +107,10 @@ export function CalendarWithGoogleEvents({
             `Fetched ${googleEvents.length} events from Google Calendar`
           );
 
-          if (googleCalendarConnected) {
-            console.log("Syncing existing appointments to Google Calendar...");
-            await syncExistingAppointments();
-          }
+          // if (googleCalendarConnected) {
+          //   console.log("Syncing existing appointments to Google Calendar...");
+          //   await syncExistingAppointments();
+          // }
 
           const syncedGoogleEventIds = new Set(
             agenduxAppointments
@@ -169,7 +169,7 @@ export function CalendarWithGoogleEvents({
     }
   }, [
     agenduxAppointments,
-    syncExistingAppointments,
+    // syncExistingAppointments,
     googleCalendarConnected,
     isCheckingConnection,
   ]);

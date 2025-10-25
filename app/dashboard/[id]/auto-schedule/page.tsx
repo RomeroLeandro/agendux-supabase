@@ -1,8 +1,6 @@
-// 👇 1. Se mantiene porque usas hooks como useState, useEffect, etc.
 "use client";
 
 import { useState, useEffect } from "react";
-// 👇 2. Importamos 'useParams' para leer la URL en un Client Component.
 import { useRouter, useParams } from "next/navigation";
 import { Typography } from "@/components/ui/typography";
 import { Button } from "@/components/ui/button";
@@ -11,11 +9,9 @@ import { AutoAgendaContent } from "./auto-schedule-content";
 import { createClient } from "@/lib/supabase/client";
 import { Service, Profile, AutoAgendaConfig } from "@/app/types";
 
-// 👇 3. Ya no se reciben 'params' como props, por lo que la interfaz se elimina.
 export default function AutoAgendaPage() {
-  // 👇 4. Esta es la forma correcta de obtener los parámetros en un Client Component.
   const params = useParams();
-  const userId = params.id as string; // Extraemos el 'id' del objeto de parámetros.
+  const userId = params.id as string;
 
   const [autoAgendaConfig, setAutoAgendaConfig] =
     useState<AutoAgendaConfig | null>(null);
@@ -36,14 +32,11 @@ export default function AutoAgendaPage() {
           return;
         }
 
-        // Verificamos si el usuario autenticado coincide con el de la URL
         if (user.id !== userId) {
-          // Puedes redirigir o mostrar un error de acceso denegado
           router.push("/auth/login");
           return;
         }
 
-        // Cargar configuración de Auto-Agenda
         const { data: config } = await supabase
           .from("auto_agenda_config")
           .select("*")
@@ -51,14 +44,12 @@ export default function AutoAgendaPage() {
           .maybeSingle();
         setAutoAgendaConfig(config);
 
-        // Cargar servicios
         const { data: servicesData } = await supabase
           .from("services")
           .select("*")
           .eq("user_id", user.id);
         setServices(servicesData || []);
 
-        // Cargar perfil
         const { data: profileData } = await supabase
           .from("profiles")
           .select("*")
@@ -75,7 +66,6 @@ export default function AutoAgendaPage() {
     if (userId) {
       loadData();
     } else {
-      // Si no hay userId en la URL, no hay nada que cargar.
       setIsLoading(false);
     }
   }, [userId, router, supabase]);
@@ -94,10 +84,19 @@ export default function AutoAgendaPage() {
     try {
       const bookingUrl = generateBookingUrl();
       await navigator.clipboard.writeText(bookingUrl);
-      alert("URL copiada al portapapeles");
+
+      // Mostrar feedback visual
+      const button = document.getElementById("copy-button");
+      if (button) {
+        button.textContent = "✓ Copiado";
+        setTimeout(() => {
+          button.innerHTML =
+            '<svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>Copiar URL';
+        }, 2000);
+      }
     } catch (error) {
       console.error("Error al copiar la URL:", error);
-      alert("Error al copiar URL");
+      alert("Error al copiar URL. Por favor, intenta nuevamente.");
     }
   };
 
@@ -115,6 +114,7 @@ export default function AutoAgendaPage() {
   }
 
   const bookingUrl = generateBookingUrl();
+  const isConfigActive = autoAgendaConfig?.is_active ?? false;
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
@@ -136,9 +136,15 @@ export default function AutoAgendaPage() {
 
         <div className="flex gap-2 w-full sm:w-auto">
           <Button
+            id="copy-button"
             className="flex-1 sm:flex-none items-center gap-2"
             onClick={handleCopyUrl}
-            disabled={!autoAgendaConfig?.is_active}
+            disabled={!isConfigActive}
+            title={
+              !isConfigActive
+                ? "Activa tu auto-agenda para copiar la URL"
+                : "Copiar URL al portapapeles"
+            }
           >
             <Copy className="h-4 w-4" />
             Copiar URL
@@ -146,13 +152,27 @@ export default function AutoAgendaPage() {
           <Button
             className="flex-1 sm:flex-none items-center gap-2"
             onClick={handlePreview}
-            disabled={!autoAgendaConfig?.is_active}
+            disabled={!isConfigActive}
+            title={
+              !isConfigActive
+                ? "Activa tu auto-agenda para ver la vista previa"
+                : "Ver página pública"
+            }
           >
             <Eye className="h-4 w-4" />
             Vista Previa
           </Button>
         </div>
       </div>
+
+      {!isConfigActive && (
+        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <Typography variant="body-sm" className="text-yellow-800">
+            ⚠️ Tu auto-agenda está desactivada. Actívala en la pestaña General
+            para que tus pacientes puedan agendar citas.
+          </Typography>
+        </div>
+      )}
 
       <AutoAgendaContent
         config={autoAgendaConfig}
