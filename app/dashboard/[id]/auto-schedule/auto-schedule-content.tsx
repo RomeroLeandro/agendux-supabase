@@ -8,6 +8,7 @@ import { Service, Profile, AutoAgendaConfig } from "@/app/types"; // Importamos 
 import { SchedulesConfig } from "./schedules-config";
 import { FieldsConfig } from "./fields-config";
 import { DesignConfig } from "./design-config";
+import { DuplicateSlugHandler } from "./duplicate-slug-handler";
 
 // BORRA cualquier 'interface Profile {...}' que pueda haber aquí
 
@@ -30,6 +31,17 @@ export function AutoAgendaContent({
 
   return (
     <>
+      <DuplicateSlugHandler
+        userId={userId}
+        currentConfig={
+          config
+            ? {
+                id: String(config.id),
+                url_slug: config.url_slug,
+              }
+            : null
+        }
+      />
       <AutoAgendaTabs activeTab={activeTab} onTabChange={setActiveTab} />
       <div className="mt-8">
         <div className={activeTab === "general" ? "block" : "hidden"}>
