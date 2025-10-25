@@ -159,25 +159,72 @@ export function GeneralConfig({
       }
       setIsCheckingSlug(true);
       try {
-        const { data, error } = await supabase
+        console.log("=== VERIFICANDO DISPONIBILIDAD DE SLUG ===");
+        console.log("Slug a verificar:", slug);
+        console.log("Config actual:", config);
+        console.log("User ID:", userId);
+
+        // Buscar CUALQUIER configuración con este slug
+        const { data, error, count } = await supabase
           .from("auto_agenda_config")
-          .select("user_id")
-          .eq("url_slug", slug)
-          .single();
-        if (error && error.code === "PGRST116") {
-          setSlugAvailability({ available: true, message: "URL disponible" });
-        } else if (data && data.user_id === userId) {
+          .select("*", { count: "exact" })
+          .eq("url_slug", slug);
+
+        console.log("Resultados de búsqueda:", { data, error, count });
+
+        if (error) {
+          console.error("Error en verificación:", error);
+          setSlugAvailability({
+            available: null,
+            message: "Error al verificar disponibilidad",
+          });
+          return;
+        }
+
+        // Si no hay datos o count es 0, está disponible
+        if (!data || data.length === 0 || count === 0) {
+          console.log("Slug disponible - no hay registros");
           setSlugAvailability({
             available: true,
-            message: "Esta es tu URL actual",
+            message: "URL disponible",
           });
-        } else if (data) {
-          setSlugAvailability({
-            available: false,
-            message: "Esta URL ya está en uso",
-          });
+          return;
         }
-      } catch {
+
+        // Si hay exactamente un registro
+        if (data.length === 1) {
+          const existingConfig = data[0];
+          console.log("Encontrado 1 registro:", existingConfig);
+
+          // Si es la configuración actual del usuario, está OK
+          if (
+            existingConfig.user_id === userId &&
+            config?.id === existingConfig.id
+          ) {
+            console.log("Es la URL actual del usuario");
+            setSlugAvailability({
+              available: true,
+              message: "Esta es tu URL actual",
+            });
+          } else {
+            // Es de otro usuario o es otra configuración
+            console.log("URL ya en uso por otro usuario u otra configuración");
+            setSlugAvailability({
+              available: false,
+              message: "Esta URL ya está en uso",
+            });
+          }
+          return;
+        }
+
+        // Si hay más de un registro, definitivamente está en uso
+        console.log(`URL duplicada - encontrados ${data.length} registros`);
+        setSlugAvailability({
+          available: false,
+          message: `Esta URL ya está en uso (${data.length} configuraciones encontradas)`,
+        });
+      } catch (error) {
+        console.error("Error en checkSlugAvailability:", error);
         setSlugAvailability({
           available: null,
           message: "Error al verificar disponibilidad",
@@ -186,7 +233,7 @@ export function GeneralConfig({
         setIsCheckingSlug(false);
       }
     },
-    [supabase, userId]
+    [supabase, userId, config]
   );
 
   const handleSave = async () => {
@@ -362,13 +409,13 @@ export function GeneralConfig({
                   isDisabled ? "opacity-50 cursor-not-allowed" : ""
                 } ${
                   slugAvailability.available === false
-                    ? "border-red-500"
+                    ? "border-red-500 focus-visible:ring-red-500"
                     : slugAvailability.available === true
-                    ? "border-green-500"
+                    ? "border-green-500 focus-visible:ring-green-500"
                     : ""
                 }`}
               />
-              <div className="flex items-center px-3 border border-l-0 border-border rounded-r-md bg-muted">
+              <div className="flex items-center px-3 border border-l-0 border-border rounded-r-md bg-muted min-w-[32px]">
                 {isCheckingSlug ? (
                   <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                 ) : slugAvailability.available === true ? (
@@ -382,9 +429,9 @@ export function GeneralConfig({
               variant="body-sm"
               className={`${
                 slugAvailability.available === false
-                  ? "text-red-600"
+                  ? "text-red-600 font-medium"
                   : slugAvailability.available === true
-                  ? "text-green-600"
+                  ? "text-green-600 font-medium"
                   : isDisabled
                   ? "text-muted-foreground/50"
                   : "text-muted-foreground"
@@ -393,6 +440,23 @@ export function GeneralConfig({
               {slugAvailability.message ||
                 "Esta será la URL que compartirás con tus pacientes"}
             </Typography>
+
+            {/* Mostrar alerta adicional si está en uso */}
+            {slugAvailability.available === false && (
+              <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                <p className="text-sm text-red-800">
+                  No podrás guardar mientras la URL esté en uso. Prueba con:{" "}
+                  <code className="bg-red-100 px-1 rounded">
+                    {formData.url_slug}-2
+                  </code>{" "}
+                  o{" "}
+                  <code className="bg-red-100 px-1 rounded">
+                    {formData.url_slug}-pro
+                  </code>
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -557,11 +621,16 @@ export function GeneralConfig({
           disabled={
             isPending ||
             (slugAvailability.available === false &&
-              formData.url_slug !== config?.url_slug)
+              formData.url_slug !== config?.url_slug) ||
+            isCheckingSlug
           }
-          className="bg-purple-600 hover:bg-purple-700"
+          className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isPending ? "Guardando..." : "Guardar Cambios"}
+          {isPending
+            ? "Guardando..."
+            : isCheckingSlug
+            ? "Verificando..."
+            : "Guardar Cambios"}
         </Button>
       </div>
     </div>
