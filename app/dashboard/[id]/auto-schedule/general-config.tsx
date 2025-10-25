@@ -190,6 +190,8 @@ export function GeneralConfig({
   );
 
   const handleSave = async () => {
+    console.log("handleSave called"); // Para verificar que se ejecuta
+
     if (
       slugAvailability.available === false &&
       formData.url_slug !== config?.url_slug
@@ -197,27 +199,88 @@ export function GeneralConfig({
       alert("Por favor corrige la URL antes de guardar");
       return;
     }
+
+    console.log("Validation passed, starting transition");
+
     startTransition(async () => {
+      console.log("Inside transition");
+
       try {
+        console.log("=== INICIANDO GUARDADO ===");
+        console.log("Config:", JSON.stringify(config, null, 2));
+        console.log("FormData:", JSON.stringify(formData, null, 2));
+
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        console.log("User ID:", user?.id);
+
         if (config?.id) {
-          const { error } = await supabase
+          console.log("Attempting update...");
+
+          const updateData = {
+            is_active: formData.is_active,
+            url_slug: formData.url_slug,
+            page_title: formData.page_title,
+            page_description: formData.page_description,
+            max_days_advance: formData.max_days_advance,
+            min_hours_advance: formData.min_hours_advance,
+            max_appointments_per_day: formData.max_appointments_per_day,
+          };
+
+          console.log("Update data:", JSON.stringify(updateData, null, 2));
+
+          const { data, error } = await supabase
             .from("auto_agenda_config")
-            .update(formData)
-            .eq("id", config.id);
-          if (error) throw error;
+            .update(updateData)
+            .eq("id", config.id)
+            .select();
+
+          console.log("Update response:", { data, error });
+
+          if (error) {
+            throw error;
+          }
+
+          alert("✅ Configuración guardada exitosamente");
+          window.location.reload();
         } else {
-          const { error } = await supabase.from("auto_agenda_config").insert({
-            ...formData,
-            user_id: userId,
-          });
-          if (error) throw error;
+          console.log("Attempting insert...");
+
+          const { data, error } = await supabase
+            .from("auto_agenda_config")
+            .insert({
+              ...formData,
+              user_id: userId,
+            })
+            .select();
+
+          console.log("Insert response:", { data, error });
+
+          if (error) {
+            throw error;
+          }
+
+          alert("✅ Configuración creada exitosamente");
+          window.location.reload();
         }
-        alert("Configuración guardada exitosamente");
-        window.location.reload();
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Error desconocido";
-        alert("Error al guardar la configuración: " + errorMessage);
+      } catch (error: unknown) {
+        console.error("=== ERROR CAPTURADO ===");
+        console.error("Error object:", error);
+
+        // Type guard para manejar el error de forma segura
+        if (error && typeof error === "object" && "message" in error) {
+          console.error(
+            "Error message:",
+            (error as { message: string }).message
+          );
+          alert(
+            `❌ Error al guardar: ${(error as { message: string }).message}`
+          );
+        } else {
+          console.error("Error desconocido:", error);
+          alert("❌ Error desconocido al guardar la configuración");
+        }
       }
     });
   };
