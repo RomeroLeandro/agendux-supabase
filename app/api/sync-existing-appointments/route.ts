@@ -6,6 +6,7 @@ import { google } from "googleapis";
 interface AppointmentData {
   id: number;
   appointment_datetime: string;
+  duration_minutes: number;
   patients: { full_name: string } | null;
   services: { name: string } | null;
 }
@@ -20,6 +21,18 @@ export async function POST() {
     if (!user) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
+
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("timezone")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError || !profile) {
+      return NextResponse.json({ error: "Profile not found" }, { status: 404 });
+    }
+
+    const timeZone = profile.timezone || "America/Argentina/Buenos_Aires";
 
     const supabaseAdmin = createAdminClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -46,9 +59,10 @@ export async function POST() {
         `
         id,
         appointment_datetime,
+        duration_minutes,
         patients(full_name),
         services(name)
-      `
+      ` // <-- 2. AÑADIR duration_minutes AL SELECT
       )
       .eq("user_id", user.id)
       .is("google_event_id", null);
@@ -89,8 +103,12 @@ export async function POST() {
       try {
         const typedAppointment = appointment as unknown as AppointmentData;
 
+        const duration = typedAppointment.duration_minutes || 60; // Fallback a 60
         const appointmentDate = new Date(typedAppointment.appointment_datetime);
-        const endDate = new Date(appointmentDate.getTime() + 60 * 60 * 1000);
+        // <-- 3. USAR DURACIÓN REAL
+        const endDate = new Date(
+          appointmentDate.getTime() + duration * 60 * 1000
+        );
 
         const serviceName = typedAppointment.services?.name || "Cita";
         const patientName = typedAppointment.patients?.full_name || "Paciente";
@@ -100,11 +118,11 @@ export async function POST() {
           description: `Cita desde Agendux\nPaciente: ${patientName}\nServicio: ${serviceName}`,
           start: {
             dateTime: appointmentDate.toISOString(),
-            timeZone: "America/Argentina/Buenos_Aires",
+            timeZone: timeZone,
           },
           end: {
             dateTime: endDate.toISOString(),
-            timeZone: "America/Argentina/Buenos_Aires",
+            timeZone: timeZone,
           },
         };
 

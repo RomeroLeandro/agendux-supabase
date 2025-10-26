@@ -6,6 +6,7 @@ import { google } from "googleapis";
 interface AppointmentData {
   id: number;
   appointment_datetime: string;
+  duration_minutes: number; // <-- 1. AÑADIR DURACIÓN
   google_event_id?: string | null;
   patients: { full_name: string } | null;
   services: { name: string } | null;
@@ -24,17 +25,30 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("timezone")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError || !profile) {
+      return NextResponse.json({ error: "Profile not found" }, { status: 404 });
+    }
+
+    const timeZone = profile.timezone || "America/Argentina/Buenos_Aires";
+
     const { data: appointment, error: appointmentError } = await supabase
       .from("appointments")
       .select(
         `
         id,
         appointment_datetime,
+        duration_minutes, 
         google_event_id,
         synced_to_google,
         patients(full_name),
         services(name)
-      `
+      ` // <-- 2. AÑADIR duration_minutes AL SELECT
       )
       .eq("id", appointmentId)
       .eq("user_id", user.id)
@@ -82,9 +96,14 @@ export async function POST(request: Request) {
       googleEventId: typedAppointment.google_event_id || undefined,
     };
 
+    const duration = typedAppointment.duration_minutes || 60; // Fallback a 60 si es nulo
+
     if (action === "create" && !typedAppointment.google_event_id) {
       const appointmentDate = new Date(typedAppointment.appointment_datetime);
-      const endDate = new Date(appointmentDate.getTime() + 60 * 60 * 1000);
+      // <-- 3. USAR DURACIÓN REAL
+      const endDate = new Date(
+        appointmentDate.getTime() + duration * 60 * 1000
+      );
 
       const serviceName = typedAppointment.services?.name || "Cita";
       const patientName = typedAppointment.patients?.full_name || "Paciente";
@@ -94,11 +113,11 @@ export async function POST(request: Request) {
         description: `Cita desde Agendux\nPaciente: ${patientName}\nServicio: ${serviceName}`,
         start: {
           dateTime: appointmentDate.toISOString(),
-          timeZone: "America/Argentina/Buenos_Aires",
+          timeZone: timeZone,
         },
         end: {
           dateTime: endDate.toISOString(),
-          timeZone: "America/Argentina/Buenos_Aires",
+          timeZone: timeZone,
         },
       };
 
@@ -123,7 +142,10 @@ export async function POST(request: Request) {
       }
     } else if (action === "update" && typedAppointment.google_event_id) {
       const appointmentDate = new Date(typedAppointment.appointment_datetime);
-      const endDate = new Date(appointmentDate.getTime() + 60 * 60 * 1000);
+      // <-- 3. USAR DURACIÓN REAL
+      const endDate = new Date(
+        appointmentDate.getTime() + duration * 60 * 1000
+      );
 
       const serviceName = typedAppointment.services?.name || "Cita";
       const patientName = typedAppointment.patients?.full_name || "Paciente";
@@ -136,11 +158,11 @@ export async function POST(request: Request) {
           description: `Cita desde Agendux\nPaciente: ${patientName}\nServicio: ${serviceName}`,
           start: {
             dateTime: appointmentDate.toISOString(),
-            timeZone: "America/Argentina/Buenos_Aires",
+            timeZone: timeZone,
           },
           end: {
             dateTime: endDate.toISOString(),
-            timeZone: "America/Argentina/Buenos_Aires",
+            timeZone: timeZone,
           },
         },
       });

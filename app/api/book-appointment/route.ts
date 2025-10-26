@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { google } from "googleapis";
+import { zonedTimeToUtc } from "date-fns-tz";
 
 export async function POST(request: Request) {
   try {
@@ -24,6 +25,24 @@ export async function POST(request: Request) {
     });
 
     const supabase = await createClient();
+
+    // 2. OBTENER PERFIL Y SERVICIO PRIMERO
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("timezone")
+      .eq("id", professional_id)
+      .single();
+
+    if (profileError || !profile) {
+      console.error("❌ Error fetching professional profile:", profileError);
+      return NextResponse.json(
+        { error: "Professional not found" },
+        { status: 404 }
+      );
+    }
+
+    // 3. DEFINIR ZONA HORARIA (con fallback)
+    const timeZone = profile.timezone || "America/Argentina/Buenos_Aires";
 
     // Obtener la duración del servicio
     const { data: service, error: serviceError } = await supabase
@@ -58,18 +77,20 @@ export async function POST(request: Request) {
 
     console.log("✅ Patient created with ID:", patient.id);
 
-    // Crear cita
-    const appointmentDateTime = new Date(
-      `${appointment_date}T${appointment_time}`
-    );
+    // 4. CREAR FECHA UTC CORRECTA
+    // Combina fecha y hora local (ej: "2023-10-27T10:00")
+    const localDateTimeString = `${appointment_date}T${appointment_time}`;
+    // Convierte esa hora local (en la zona del profesional) a un objeto Date (UTC)
+    const appointmentDateTime = zonedTimeToUtc(localDateTimeString, timeZone);
 
+    // Crear cita
     const { data: appointment, error: appointmentError } = await supabase
       .from("appointments")
       .insert({
         user_id: professional_id,
         patient_id: patient.id,
         service_id: service_id,
-        appointment_datetime: appointmentDateTime.toISOString(),
+        appointment_datetime: appointmentDateTime.toISOString(), // Usar el ISO string UTC
         duration_minutes: service.duration_minutes,
         notes: notes,
         status: "scheduled",
@@ -130,7 +151,7 @@ export async function POST(request: Request) {
         });
 
         // Calcular fecha de fin
-        const endDateTime = new Date(appointmentDateTime);
+        const endDateTime = new Date(appointmentDateTime.getTime()); // Clonar fecha UTC
         endDateTime.setMinutes(
           endDateTime.getMinutes() + service.duration_minutes
         );
@@ -142,12 +163,12 @@ export async function POST(request: Request) {
             service.name
           }\nTeléfono: ${patient_phone}\n${notes ? `\nNotas: ${notes}` : ""}`,
           start: {
-            dateTime: appointmentDateTime.toISOString(),
-            timeZone: "America/Argentina/Buenos_Aires",
+            dateTime: appointmentDateTime.toISOString(), // Usar ISO string UTC
+            timeZone: timeZone, // 5. USAR ZONA HORARIA DINÁMICA
           },
           end: {
-            dateTime: endDateTime.toISOString(),
-            timeZone: "America/Argentina/Buenos_Aires",
+            dateTime: endDateTime.toISOString(), // Usar ISO string UTC
+            timeZone: timeZone, // 5. USAR ZONA HORARIA DINÁMICA
           },
         };
 
