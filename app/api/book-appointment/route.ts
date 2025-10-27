@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { google } from "googleapis";
-import { zonedTimeToUtc } from "date-fns-tz";
+import { fromZonedTime } from "date-fns-tz";
 
 export async function POST(request: Request) {
   try {
@@ -81,7 +81,7 @@ export async function POST(request: Request) {
     // Combina fecha y hora local (ej: "2023-10-27T10:00")
     const localDateTimeString = `${appointment_date}T${appointment_time}`;
     // Convierte esa hora local (en la zona del profesional) a un objeto Date (UTC)
-    const appointmentDateTime = zonedTimeToUtc(localDateTimeString, timeZone);
+    const appointmentDateTime = fromZonedTime(localDateTimeString, timeZone);
 
     // Crear cita
     const { data: appointment, error: appointmentError } = await supabase

@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { Clock, Plus, Trash2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { WorkHour } from "@/app/types";
 import { Input } from "@/components/ui/input";
+import { WorkHour } from "@/app/types";
 
 interface SchedulesConfigProps {
   userId: string;
@@ -37,6 +37,7 @@ export function SchedulesConfig({ userId }: SchedulesConfigProps) {
   const [isSaving, startTransition] = useTransition();
   const supabase = createClient();
 
+  // 🚀 Cargar horarios existentes
   useEffect(() => {
     const initialState: ScheduleState = {};
     daysOfWeek.forEach((day) => {
@@ -67,9 +68,7 @@ export function SchedulesConfig({ userId }: SchedulesConfigProps) {
               updatedState[wh.day_of_week].intervals = [];
             }
             updatedState[wh.day_of_week].intervals.push({
-              // 👇 CORRECCIÓN AQUÍ 👇
               start_time: (wh.start_time as string).substring(0, 5),
-              // 👇 Y CORRECCIÓN AQUÍ 👇
               end_time: (wh.end_time as string).substring(0, 5),
             });
           }
@@ -84,6 +83,7 @@ export function SchedulesConfig({ userId }: SchedulesConfigProps) {
     fetchWorkHours();
   }, [userId, supabase]);
 
+  // 🕐 Manejar cambios de hora
   const handleIntervalChange = (
     dayId: number,
     intervalIndex: number,
@@ -95,6 +95,7 @@ export function SchedulesConfig({ userId }: SchedulesConfigProps) {
     setSchedule(newSchedule);
   };
 
+  // ➕ Agregar rango horario
   const addInterval = (dayId: number) => {
     const newSchedule = { ...schedule };
     newSchedule[dayId].intervals.push({
@@ -104,12 +105,14 @@ export function SchedulesConfig({ userId }: SchedulesConfigProps) {
     setSchedule(newSchedule);
   };
 
+  // ❌ Eliminar rango
   const removeInterval = (dayId: number, intervalIndex: number) => {
     const newSchedule = { ...schedule };
     newSchedule[dayId].intervals.splice(intervalIndex, 1);
     setSchedule(newSchedule);
   };
 
+  // 🔁 Activar/desactivar día
   const handleDayToggle = (dayId: number, isEnabled: boolean) => {
     setSchedule((prev) => ({
       ...prev,
@@ -117,26 +120,72 @@ export function SchedulesConfig({ userId }: SchedulesConfigProps) {
     }));
   };
 
+  // 💾 Guardar cambios
   const handleSaveChanges = async () => {
     startTransition(async () => {
       try {
-        await supabase.from("work_hours").delete().eq("user_id", userId);
+        // 🧩 Validaciones
+        for (const [dayIdStr, dayData] of Object.entries(schedule)) {
+          const dayId = parseInt(dayIdStr);
+          if (!dayData.isEnabled) continue;
 
+          const intervals = dayData.intervals;
+          for (const interval of intervals) {
+            if (!interval.start_time || !interval.end_time) {
+              alert(
+                `El día ${
+                  daysOfWeek.find((d) => d.id === dayId)?.name
+                } tiene horarios vacíos.`
+              );
+              return;
+            }
+            if (interval.start_time >= interval.end_time) {
+              alert(
+                `El horario de inicio no puede ser mayor o igual al de fin (${
+                  daysOfWeek.find((d) => d.id === dayId)?.name
+                }).`
+              );
+              return;
+            }
+          }
+
+          // 🔍 Validar que no haya solapamientos
+          const sorted = [...intervals].sort((a, b) =>
+            a.start_time.localeCompare(b.start_time)
+          );
+          for (let i = 1; i < sorted.length; i++) {
+            if (sorted[i].start_time < sorted[i - 1].end_time) {
+              alert(
+                `Los intervalos del día ${
+                  daysOfWeek.find((d) => d.id === dayId)?.name
+                } se superponen.`
+              );
+              return;
+            }
+          }
+        }
+
+        // 🗑️ Borrar horarios previos del usuario
+        const { error: deleteError } = await supabase
+          .from("work_hours")
+          .delete()
+          .eq("user_id", userId);
+
+        if (deleteError) throw deleteError;
+
+        // 🆕 Insertar nuevos horarios
         const newWorkHours: Omit<WorkHour, "id">[] = [];
         Object.keys(schedule).forEach((dayIdStr) => {
           const dayId = parseInt(dayIdStr);
           const dayInfo = schedule[dayId];
           if (dayInfo.isEnabled) {
             dayInfo.intervals.forEach((interval) => {
-              if (interval.start_time && interval.end_time) {
-                // Asegurarse de que no estén vacíos
-                newWorkHours.push({
-                  user_id: userId,
-                  day_of_week: dayId,
-                  start_time: interval.start_time,
-                  end_time: interval.end_time,
-                });
-              }
+              newWorkHours.push({
+                user_id: userId,
+                day_of_week: dayId,
+                start_time: interval.start_time,
+                end_time: interval.end_time,
+              });
             });
           }
         });
@@ -148,10 +197,10 @@ export function SchedulesConfig({ userId }: SchedulesConfigProps) {
           if (insertError) throw insertError;
         }
 
-        alert("Horarios guardados correctamente.");
+        alert("✅ Horarios guardados correctamente.");
       } catch (error) {
         console.error("Error saving work hours:", error);
-        alert("Hubo un error al guardar los horarios.");
+        alert("❌ Hubo un error al guardar los horarios.");
       }
     });
   };
@@ -254,6 +303,7 @@ export function SchedulesConfig({ userId }: SchedulesConfigProps) {
           ))}
         </div>
       </Card>
+
       <div className="flex justify-end">
         <Button
           onClick={handleSaveChanges}

@@ -149,6 +149,7 @@ export function GeneralConfig({
         });
         return;
       }
+
       const slugRegex = /^[a-z0-9-]+$/;
       if (!slugRegex.test(slug)) {
         setSlugAvailability({
@@ -157,33 +158,19 @@ export function GeneralConfig({
         });
         return;
       }
+
       setIsCheckingSlug(true);
       try {
-        console.log("=== VERIFICANDO DISPONIBILIDAD DE SLUG ===");
-        console.log("Slug a verificar:", slug);
-        console.log("Config actual:", config);
-        console.log("User ID:", userId);
-
-        // Buscar CUALQUIER configuración con este slug
-        const { data, error, count } = await supabase
+        const { data, error } = await supabase
           .from("auto_agenda_config")
-          .select("*", { count: "exact" })
-          .eq("url_slug", slug);
+          .select("url_slug")
+          .eq("url_slug", slug)
+          .limit(1);
 
-        console.log("Resultados de búsqueda:", { data, error, count });
+        if (error) throw error;
 
-        if (error) {
-          console.error("Error en verificación:", error);
-          setSlugAvailability({
-            available: null,
-            message: "Error al verificar disponibilidad",
-          });
-          return;
-        }
-
-        // Si no hay datos o count es 0, está disponible
-        if (!data || data.length === 0 || count === 0) {
-          console.log("Slug disponible - no hay registros");
+        // Si no hay ningún registro → disponible
+        if (!data || data.length === 0) {
           setSlugAvailability({
             available: true,
             message: "URL disponible",
@@ -191,40 +178,12 @@ export function GeneralConfig({
           return;
         }
 
-        // Si hay exactamente un registro
-        if (data.length === 1) {
-          const existingConfig = data[0];
-          console.log("Encontrado 1 registro:", existingConfig);
-
-          // Si es la configuración actual del usuario, está OK
-          if (
-            existingConfig.user_id === userId &&
-            config?.id === existingConfig.id
-          ) {
-            console.log("Es la URL actual del usuario");
-            setSlugAvailability({
-              available: true,
-              message: "Esta es tu URL actual",
-            });
-          } else {
-            // Es de otro usuario o es otra configuración
-            console.log("URL ya en uso por otro usuario u otra configuración");
-            setSlugAvailability({
-              available: false,
-              message: "Esta URL ya está en uso",
-            });
-          }
-          return;
-        }
-
-        // Si hay más de un registro, definitivamente está en uso
-        console.log(`URL duplicada - encontrados ${data.length} registros`);
         setSlugAvailability({
           available: false,
-          message: `Esta URL ya está en uso (${data.length} configuraciones encontradas)`,
+          message: "Esta URL ya está en uso",
         });
       } catch (error) {
-        console.error("Error en checkSlugAvailability:", error);
+        console.error("Error al verificar slug:", error);
         setSlugAvailability({
           available: null,
           message: "Error al verificar disponibilidad",
@@ -233,7 +192,7 @@ export function GeneralConfig({
         setIsCheckingSlug(false);
       }
     },
-    [supabase, userId, config]
+    [supabase]
   );
 
   const handleSave = async () => {
@@ -415,7 +374,7 @@ export function GeneralConfig({
                     : ""
                 }`}
               />
-              <div className="flex items-center px-3 border border-l-0 border-border rounded-r-md bg-muted min-w-[32px]">
+              <div className="flex items-center px-3 border border-l-0 border-border rounded-r-md bg-muted min-w-8">
                 {isCheckingSlug ? (
                   <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                 ) : slugAvailability.available === true ? (
@@ -444,7 +403,7 @@ export function GeneralConfig({
             {/* Mostrar alerta adicional si está en uso */}
             {slugAvailability.available === false && (
               <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 shrink-0" />
                 <p className="text-sm text-red-800">
                   No podrás guardar mientras la URL esté en uso. Prueba con:{" "}
                   <code className="bg-red-100 px-1 rounded">

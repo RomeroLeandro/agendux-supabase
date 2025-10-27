@@ -38,10 +38,13 @@ export async function GET() {
     oauth2Client.setCredentials({ refresh_token: tokenData.refresh_token });
     const calendar = google.calendar({ version: "v3", auth: oauth2Client });
 
+    const timeMinDate = new Date();
+    timeMinDate.setDate(timeMinDate.getDate() - 60);
+
     const response = await calendar.events.list({
       calendarId: "primary",
-      timeMin: new Date().toISOString(),
-      maxResults: 50,
+      timeMin: timeMinDate.toISOString(),
+      maxResults: 100,
       singleEvents: true,
       orderBy: "startTime",
     });
