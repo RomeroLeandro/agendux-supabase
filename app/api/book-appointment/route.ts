@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { google } from "googleapis";
 import { fromZonedTime } from "date-fns-tz";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 
 export async function POST(request: Request) {
   try {
@@ -29,7 +30,7 @@ export async function POST(request: Request) {
     // 2. OBTENER PERFIL Y SERVICIO PRIMERO
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("timezone")
+      .select("timezone, first_name, last_name")
       .eq("id", professional_id)
       .single();
 
@@ -106,6 +107,64 @@ export async function POST(request: Request) {
 
     console.log("✅ Appointment created successfully with ID:", appointment.id);
 
+    const supabaseAdmin = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    try {
+      // 1. Obtener la config de WhatsApp del profesional
+      const { data: settings } = await supabaseAdmin
+        .from("whatsapp_settings")
+        .select("is_active, confirmation_template, confirmation_delay_minutes")
+        .eq("profile_id", appointment.user_id) // 'user_id' es el professional_id
+        .single();
+
+      // 2. Si está activo y tiene plantilla, programar el job
+      if (settings?.is_active && settings.confirmation_template) {
+        console.log("🔔 WhatsApp service active. Scheduling confirmation...");
+        const delayInMinutes = settings.confirmation_delay_minutes || 0;
+        const scheduleTime = `NOW() + '${delayInMinutes} minutes'::interval`;
+        const jobName = `send-whatsapp-confirm-${appointment.id}`;
+
+        // 3. Preparamos el comando SQL para pg_cron
+        // (Asegúrate de que NEXT_PUBLIC_SITE_URL esté en tus .env de Vercel)
+        const cronCommand = `
+          SELECT net.http_post(
+              '${process.env.NEXT_PUBLIC_SITE_URL}/api/whatsapp-sender',
+              jsonb_build_object(
+                  'appointment_id', '${appointment.id}',
+                  'message_type', 'confirmation'
+              ),
+              '{}'::jsonb,
+              jsonb_build_object('Authorization', 'Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}')
+          )
+        `;
+
+        // 4. Usamos 'eval' (o 'sql') para ejecutar el comando de cron
+        const { error: cronError } = await supabaseAdmin.rpc("eval", {
+          query: `SELECT cron.schedule('${jobName}', ${scheduleTime}, $$${cronCommand}$$)`,
+        });
+
+        if (cronError) {
+          // Si falla la programación, solo lo logueamos
+          console.error(
+            "Error al programar el cron job de confirmación:",
+            cronError
+          );
+        } else {
+          console.log(`✅ WhatsApp job scheduled: ${jobName}`);
+        }
+      } else {
+        console.log("ℹ️ WhatsApp service not active or no template found.");
+      }
+    } catch (e) {
+      // Si falla toda la lógica de WhatsApp, lo logueamos
+      console.error(
+        "Error fatal en la lógica de WhatsApp post-reserva:",
+        (e as Error).message
+      );
+    }
     // ===== SINCRONIZACIÓN CON GOOGLE CALENDAR =====
     let googleEventId: string | null = null;
     let syncedToGoogle = false;
@@ -114,15 +173,6 @@ export async function POST(request: Request) {
       console.log(
         "🔍 Checking Google Calendar connection for user:",
         professional_id
-      );
-
-      // Usar el admin client para acceder a los tokens
-      const { createClient: createAdminClient } = await import(
-        "@supabase/supabase-js"
-      );
-      const supabaseAdmin = createAdminClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
       );
 
       const { data: tokenData, error: tokenError } = await supabaseAdmin

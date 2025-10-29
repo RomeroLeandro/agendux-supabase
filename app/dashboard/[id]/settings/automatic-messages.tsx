@@ -1,476 +1,405 @@
 "use client";
 
-import { useState } from "react";
-import { Card } from "@/components/ui/card";
-import { Typography } from "@/components/ui/typography";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+// ¡Importante! Usamos TU componente Card. Verifica que esta ruta sea correcta.
+import { Card } from "@/components/ui/card";
+import { createClient } from "@/lib/supabase/client";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Database } from "@/types/supabase";
 
-interface MessageConfig {
-  active: boolean;
-  message: string;
-  timing?: string;
-}
+// --- El Schema de Zod (sin cambios) ---
+const formSchema = z.object({
+  is_active: z.boolean(),
+  confirmation_template: z.string().optional(),
+  confirmation_delay_minutes: z.number().min(0, "Debe ser 0 o más"),
+  reminder_1_template: z.string().optional(),
+  reminder_1_hours_before: z.number().min(0, "Debe ser 0 o más"),
+  reminder_2_template: z.string().optional(),
+  reminder_2_hours_before: z.number().min(0, "Debe ser 0 o más"),
+  post_appointment_template: z.string().optional(),
+  post_appointment_delay_minutes: z.number().min(0, "Debe ser 0 o más"),
+});
 
-interface Messages {
-  confirmation: MessageConfig;
-  reminder: MessageConfig;
-  firstReminder: MessageConfig;
-  postCita: MessageConfig;
-}
+type FormValues = z.infer<typeof formSchema>;
+type WhatsappSettingsInsert =
+  Database["public"]["Tables"]["whatsapp_settings"]["Insert"];
 
-export function AutomaticMessages() {
-  const [messages, setMessages] = useState<Messages>({
-    confirmation: {
-      active: true,
-      message:
-        "¡Hola {{nombre}}! Tu cita para {{servicio}} a las {{hora}} ha sido confirmada. Te esperamos!",
-      timing: "Inmediatamente al agendar",
-    },
-    reminder: {
-      active: false,
-      message:
-        "Hola {{nombre}}. Tienes una cita mañana a las {{hora}} {{fecha}}. Si no puedes venir, por favor avísanos con anticipación.",
-    },
-    firstReminder: {
-      active: true,
-      message:
-        "¡Hola {{nombre}}! Estamos organizando nuestras actividades para las próximas semanas.",
-      timing: "24 horas antes",
-    },
-    postCita: {
-      active: true,
-      message:
-        "Gracias por tu visita. ¡Cuéntanos qué te pareció nuestra atención! [llave de valoración]",
-      timing: "1 hora después",
-    },
-  });
+// --- Componente de Ayuda (Adaptado a tu Card) ---
+const VariablesCheatSheet = () => (
+  <Card className="bg-muted/50 sticky top-24">
+    {/* Reemplazamos <CardHeader> y <CardTitle> */}
+    <div className="mb-4">
+      <h3 className="text-lg font-medium">Variables Disponibles</h3>
+    </div>
 
-  const [secondReminderConfig, setSecondReminderConfig] = useState({
-    active: false,
-    timeValue: "1",
-    timeUnit: "Horas antes",
-  });
-
-  const [rescheduleConfig, setRescheduleConfig] = useState({
-    active: false,
-  });
-
-  const availableVariables = [
-    "{{nombre}}",
-    "{{apellido}}",
-    "{{servicio}}",
-    "{{fecha}}",
-    "{{hora}}",
-    "{{precio}}",
-  ];
-
-  const handleMessageChange = (
-    type: keyof Messages,
-    field: keyof MessageConfig,
-    value: string | boolean
-  ) => {
-    setMessages((prev) => ({
-      ...prev,
-      [type]: {
-        ...prev[type],
-        [field]: value,
-      },
-    }));
-  };
-
-  const handleSave = () => {
-    console.log("Guardando configuración de mensajes:", messages);
-  };
-
-  return (
+    {/* Reemplazamos <CardContent> */}
     <div>
-      <div className="mb-6">
-        <Typography variant="heading-lg" className="font-semibold mb-2">
-          Resumen de Mensajes Activos
-        </Typography>
-        <Typography variant="body-sm" className="text-muted-foreground">
-          Lista de los mensajes automáticos que tienes activos
-        </Typography>
+      <p className="text-sm">
+        Usa estas variables en tus plantillas. Se reemplazarán automáticamente.
+      </p>
+      <ul className="list-disc pl-5 mt-2 space-y-1 text-sm text-muted-foreground">
+        <li>
+          <code>[PACIENTE_NOMBRE]</code>
+        </li>
+        <li>
+          <code>[PROFESIONAL_NOMBRE]</code>
+        </li>
+        <li>
+          <code>[FECHA_CITA]</code>
+        </li>
+        <li>
+          <code>[HORA_INICIO_CITA]</code>
+        </li>
+        <li>
+          <code>[SERVICIO_NOMBRE]</code>
+        </li>
+      </ul>
+      <p className="text-sm mt-3 font-medium">
+        Importante: En tu mensaje de confirmación, recuerda pedir al paciente
+        que responda:
+      </p>
+      <p className="text-sm text-muted-foreground">
+        Responde <strong>CONFIRMAR</strong> o <strong>CANCELAR</strong>
+      </p>
+    </div>
+  </Card>
+);
+
+// --- Componente Principal del Formulario (Adaptado a tu Card) ---
+export default function AutomaticMessages({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const supabase = createClient();
+  const [isLoading, setIsLoading] = useState(false);
+  const [settingsId, setSettingsId] = useState<string | null>(null);
+
+  // La lógica de useForm (sin cambios)
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      is_active: false,
+      confirmation_template: "",
+      confirmation_delay_minutes: 10,
+      reminder_1_template: "",
+      reminder_1_hours_before: 24,
+      reminder_2_template: "",
+      reminder_2_hours_before: 2,
+      post_appointment_template: "",
+      post_appointment_delay_minutes: 60,
+    },
+  });
+
+  // La lógica de loadSettings (sin cambios)
+  useEffect(() => {
+    async function loadSettings() {
+      const { data, error } = await supabase
+        .from("whatsapp_settings")
+        .select("*")
+        .eq("profile_id", params.id)
+        .single();
+
+      if (data) {
+        setSettingsId(data.id);
+        form.reset({
+          is_active: data.is_active || false,
+          confirmation_template: data.confirmation_template || "",
+          confirmation_delay_minutes: data.confirmation_delay_minutes ?? 10,
+          reminder_1_template: data.reminder_1_template || "",
+          reminder_1_hours_before: data.reminder_1_hours_before ?? 24,
+          reminder_2_template: data.reminder_2_template || "",
+          reminder_2_hours_before: data.reminder_2_hours_before ?? 2,
+          post_appointment_template: data.post_appointment_template || "",
+          post_appointment_delay_minutes:
+            data.post_appointment_delay_minutes ?? 60,
+        });
+      }
+    }
+    loadSettings();
+  }, [supabase, params.id, form]);
+
+  // La lógica de onSubmit (sin cambios)
+  async function onSubmit(values: FormValues) {
+    setIsLoading(true);
+
+    const settingsToSave: WhatsappSettingsInsert = {
+      profile_id: params.id,
+      is_active: values.is_active,
+      confirmation_template: values.confirmation_template,
+      confirmation_delay_minutes: values.confirmation_delay_minutes,
+      reminder_1_template: values.reminder_1_template,
+      reminder_1_hours_before: values.reminder_1_hours_before,
+      reminder_2_template: values.reminder_2_template,
+      reminder_2_hours_before: values.reminder_2_hours_before,
+      post_appointment_template: values.post_appointment_template,
+      post_appointment_delay_minutes: values.post_appointment_delay_minutes,
+    };
+
+    const { error } = await supabase
+      .from("whatsapp_settings")
+      .upsert(settingsToSave, {
+        onConflict: "profile_id",
+      });
+
+    if (error) {
+      toast.error("Error al guardar la configuración.", {
+        description: error.message,
+      });
+    } else {
+      toast.success("¡Configuración guardada con éxito!");
+      if (!settingsId) {
+        const { data: newData } = await supabase
+          .from("whatsapp_settings")
+          .select("id")
+          .eq("profile_id", params.id)
+          .single();
+        if (newData) setSettingsId(newData.id);
+      }
+    }
+    setIsLoading(false);
+  }
+
+  // --- JSX Adaptado ---
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="lg:col-span-2">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            {/* --- Tarjeta de Activación --- */}
+            <Card>
+              <div className="mb-4">
+                <h3 className="text-lg font-medium">
+                  Mensajería Automática de WhatsApp
+                </h3>
+              </div>
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="is_active"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">
+                          Activar mensajes
+                        </FormLabel>
+                        <FormDescription>
+                          Habilita el envío de confirmaciones y recordatorios
+                          para tus citas.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </Card>
+
+            {/* --- Tarjeta de Mensaje de Confirmación --- */}
+            <Card>
+              <div className="mb-4">
+                <h3 className="text-lg font-medium">
+                  1. Mensaje de Confirmación
+                </h3>
+              </div>
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="confirmation_delay_minutes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tiempo de envío</FormLabel>
+                      <div className="flex items-center gap-2">
+                        <span>Enviar</span>
+                        <FormControl>
+                          <Input type="number" className="w-20" {...field} />
+                        </FormControl>
+                        <span>minutos DESPUÉS de agendar.</span>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="confirmation_template"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Plantilla del Mensaje</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          rows={4}
+                          placeholder="¡Hola [PACIENTE_NOMBRE]! Tienes una cita para [SERVICIO_NOMBRE] el [FECHA_CITA] a las [HORA_INICIO_CITA]. Responde 'CONFIRMAR' o 'CANCELAR'."
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </Card>
+
+            {/* --- Tarjeta de Primer Recordatorio --- */}
+            <Card>
+              <div className="mb-4">
+                <h3 className="text-lg font-medium">2. Primer Recordatorio</h3>
+              </div>
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="reminder_1_hours_before"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tiempo de envío</FormLabel>
+                      <div className="flex items-center gap-2">
+                        <span>Enviar</span>
+                        <FormControl>
+                          <Input type="number" className="w-20" {...field} />
+                        </FormControl>
+                        <span>horas ANTES de la cita.</span>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="reminder_1_template"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Plantilla del Mensaje</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          rows={4}
+                          placeholder="¡Hola [PACIENTE_NOMBRE]! Te recordamos tu cita para [SERVICIO_NOMBRE] mañana a las [HORA_INICIO_CITA]."
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </Card>
+
+            {/* --- Tarjeta de Segundo Recordatorio --- */}
+            <Card>
+              <div className="mb-4">
+                <h3 className="text-lg font-medium">3. Segundo Recordatorio</h3>
+              </div>
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="reminder_2_hours_before"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tiempo de envío</FormLabel>
+                      <div className="flex items-center gap-2">
+                        <span>Enviar</span>
+                        <FormControl>
+                          <Input type="number" className="w-20" {...field} />
+                        </FormControl>
+                        <span>horas ANTES de la cita.</span>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="reminder_2_template"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Plantilla del Mensaje</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          rows={4}
+                          placeholder="¡[PACIENTE_NOMBRE]! Tu cita con [PROFESIONAL_NOMBRE] es hoy a las [HORA_INICIO_CITA]."
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </Card>
+
+            {/* --- Tarjeta de Mensaje Post-Cita --- */}
+            <Card>
+              <div className="mb-4">
+                <h3 className="text-lg font-medium">4. Mensaje Post-Cita</h3>
+              </div>
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="post_appointment_delay_minutes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tiempo de envío</FormLabel>
+                      <div className="flex items-center gap-2">
+                        <span>Enviar</span>
+                        <FormControl>
+                          <Input type="number" className="w-20" {...field} />
+                        </FormControl>
+                        <span>minutos DESPUÉS de la cita.</span>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="post_appointment_template"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Plantilla del Mensaje</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          rows={4}
+                          placeholder="¡Gracias por tu visita, [PACIENTE_NOMBRE]! Esperamos verte pronto."
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </Card>
+
+            <Button type="submit" disabled={isLoading} className="w-full">
+              {isLoading ? "Guardando..." : "Guardar Configuración de Mensajes"}
+            </Button>
+          </form>
+        </Form>
       </div>
 
-      {/* Resumen de mensajes activos */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <Card className="p-4 bg-green-50 border-green-200">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span className="font-medium text-green-800">Confirmación</span>
-          </div>
-          <p className="text-sm text-green-600 mt-1">Al agendar</p>
-        </Card>
-
-        <Card className="p-4 bg-orange-50 border-orange-200">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-            <span className="font-medium text-orange-800">
-              1er Recordatorio
-            </span>
-          </div>
-          <p className="text-sm text-orange-600 mt-1">24 horas</p>
-        </Card>
-
-        <Card className="p-4 bg-purple-50 border-purple-200">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-            <span className="font-medium text-purple-800">Post-Cita</span>
-          </div>
-          <p className="text-sm text-purple-600 mt-1">Al finalizar</p>
-        </Card>
-      </div>
-
-      <div className="space-y-8">
-        {/* Mensaje de Confirmación */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <div>
-                <Typography variant="heading-md" className="font-semibold">
-                  Mensaje de Confirmación
-                </Typography>
-                <Typography variant="body-sm" className="text-muted-foreground">
-                  Se envía al momento de agendar la cita
-                </Typography>
-              </div>
-            </div>
-            <Switch
-              checked={messages.confirmation.active}
-              onCheckedChange={(checked: boolean) =>
-                handleMessageChange("confirmation", "active", checked)
-              }
-            />
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <Label>Activar mensaje</Label>
-            </div>
-            <div>
-              <Label>¿Cuándo enviar?</Label>
-              <Select
-                value={messages.confirmation.timing}
-                onValueChange={(value: string) =>
-                  handleMessageChange("confirmation", "timing", value)
-                }
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Seleccionar tiempo..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Inmediatamente al agendar">
-                    Inmediatamente al agendar
-                  </SelectItem>
-                  <SelectItem value="1 hora antes">1 hora antes</SelectItem>
-                  <SelectItem value="2 horas antes">2 horas antes</SelectItem>
-                  <SelectItem value="4 horas antes">4 horas antes</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="confirmation-message">Mensaje</Label>
-              <Textarea
-                id="confirmation-message"
-                value={messages.confirmation.message}
-                onChange={(e) =>
-                  handleMessageChange("confirmation", "message", e.target.value)
-                }
-                rows={3}
-                className="mt-1"
-              />
-            </div>
-          </div>
-        </Card>
-
-        {/* Primer Recordatorio */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-              <div>
-                <Typography variant="heading-md" className="font-semibold">
-                  Primer Recordatorio
-                </Typography>
-                <Typography variant="body-sm" className="text-muted-foreground">
-                  Recordatorio principal de la cita
-                </Typography>
-              </div>
-            </div>
-            <Switch
-              checked={messages.firstReminder.active}
-              onCheckedChange={(checked: boolean) =>
-                handleMessageChange("firstReminder", "active", checked)
-              }
-            />
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <Label>Activar recordatorio</Label>
-            </div>
-            <div>
-              <Label>¿Cuándo enviar?</Label>
-              <Select
-                value={messages.firstReminder.timing}
-                onValueChange={(value: string) =>
-                  handleMessageChange("firstReminder", "timing", value)
-                }
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Seleccionar tiempo..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="2 horas antes">2 horas antes</SelectItem>
-                  <SelectItem value="4 horas antes">4 horas antes</SelectItem>
-                  <SelectItem value="12 horas antes">12 horas antes</SelectItem>
-                  <SelectItem value="24 horas antes">24 horas antes</SelectItem>
-                  <SelectItem value="48 horas antes">48 horas antes</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="first-reminder-message">Mensaje</Label>
-              <Textarea
-                id="first-reminder-message"
-                value={messages.firstReminder.message}
-                onChange={(e) =>
-                  handleMessageChange(
-                    "firstReminder",
-                    "message",
-                    e.target.value
-                  )
-                }
-                rows={3}
-                className="mt-1"
-              />
-            </div>
-          </div>
-        </Card>
-
-        {/* Segundo Recordatorio */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <Typography variant="heading-md" className="font-semibold">
-                Segundo Recordatorio
-              </Typography>
-              <Typography variant="body-sm" className="text-muted-foreground">
-                Envío adicional más cerca de la cita
-              </Typography>
-            </div>
-            <Switch
-              checked={secondReminderConfig.active}
-              onCheckedChange={(checked: boolean) =>
-                setSecondReminderConfig((prev) => ({
-                  ...prev,
-                  active: checked,
-                }))
-              }
-            />
-          </div>
-
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>¿Cuándo enviar?</Label>
-                <div className="flex gap-2 mt-1">
-                  <Input
-                    type="number"
-                    value={secondReminderConfig.timeValue}
-                    onChange={(e) =>
-                      setSecondReminderConfig((prev) => ({
-                        ...prev,
-                        timeValue: e.target.value,
-                      }))
-                    }
-                    className="flex-1"
-                  />
-                  <Select
-                    value={secondReminderConfig.timeUnit}
-                    onValueChange={(value: string) =>
-                      setSecondReminderConfig((prev) => ({
-                        ...prev,
-                        timeUnit: value,
-                      }))
-                    }
-                  >
-                    <SelectTrigger className="flex-1">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Horas antes">Horas antes</SelectItem>
-                      <SelectItem value="Días antes">Días antes</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="second-reminder-message">Mensaje</Label>
-              <Textarea
-                id="second-reminder-message"
-                value={messages.reminder.message}
-                onChange={(e) =>
-                  handleMessageChange("reminder", "message", e.target.value)
-                }
-                rows={3}
-                className="mt-1"
-              />
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-              <div>
-                <Typography variant="heading-md" className="font-semibold">
-                  Mensaje Post-Cita
-                </Typography>
-                <Typography variant="body-sm" className="text-muted-foreground">
-                  Mensaje de agradecimiento después de la consulta
-                </Typography>
-              </div>
-            </div>
-            <Switch
-              checked={messages.postCita.active}
-              onCheckedChange={(checked: boolean) =>
-                handleMessageChange("postCita", "active", checked)
-              }
-            />
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <Label>Activar mensaje</Label>
-            </div>
-            <div>
-              <Label>¿Cuándo enviar?</Label>
-              <Select
-                value={messages.postCita.timing}
-                onValueChange={(value: string) =>
-                  handleMessageChange("postCita", "timing", value)
-                }
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Seleccionar tiempo..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1 hora después">1 hora después</SelectItem>
-                  <SelectItem value="2 horas después">
-                    2 horas después
-                  </SelectItem>
-                  <SelectItem value="4 horas después">
-                    4 horas después
-                  </SelectItem>
-                  <SelectItem value="12 horas después">
-                    12 horas después
-                  </SelectItem>
-                  <SelectItem value="24 horas después">
-                    24 horas después
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="post-cita-message">Mensaje</Label>
-              <Textarea
-                id="post-cita-message"
-                value={messages.postCita.message}
-                onChange={(e) =>
-                  handleMessageChange("postCita", "message", e.target.value)
-                }
-                rows={3}
-                className="mt-1"
-              />
-            </div>
-          </div>
-        </Card>
-
-        {/* Solicitud de Reseña */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <Typography variant="heading-md" className="font-semibold">
-                Solicitud de Reseña
-              </Typography>
-              <Typography variant="body-sm" className="text-muted-foreground">
-                Pide reseñas para mejorar tu reputación
-              </Typography>
-            </div>
-            <Switch
-              checked={rescheduleConfig.active}
-              onCheckedChange={(checked: boolean) =>
-                setRescheduleConfig((prev) => ({ ...prev, active: checked }))
-              }
-            />
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <Label>¿Cuándo enviar?</Label>
-              <p className="text-sm text-muted-foreground">Activar solicitud</p>
-            </div>
-          </div>
-        </Card>
-
-        {/* Variables Disponibles */}
-        <Card className="p-6">
-          <Typography variant="heading-md" className="font-semibold mb-4">
-            Variables Disponibles
-          </Typography>
-          <Typography variant="body-sm" className="text-muted-foreground mb-4">
-            Usa estas variables en tus mensajes para personalizarlos
-            automáticamente
-          </Typography>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {availableVariables.map((variable) => (
-              <div
-                key={variable}
-                className="flex items-center justify-between p-2 bg-gray-50 rounded"
-              >
-                <code className="text-sm font-mono">{variable}</code>
-                <Button
-                  onClick={() => navigator.clipboard.writeText(variable)}
-                  className="text-xs"
-                >
-                  Copiar
-                </Button>
-              </div>
-            ))}
-          </div>
-
-          <p className="text-xs text-muted-foreground mt-4">
-            Tip: Las variables de mensajes se reemplazarán automáticamente con
-            los datos reales de cada paciente.
-          </p>
-        </Card>
-      </div>
-
-      {/* Botón de guardar */}
-      <div className="pt-8 flex justify-end">
-        <Button
-          onClick={handleSave}
-          className="bg-purple-600 hover:bg-purple-700"
-        >
-          Guardar Cambios
-        </Button>
+      {/* --- Columna de Ayuda --- */}
+      <div className="lg:col-span-1">
+        <VariablesCheatSheet />
       </div>
     </div>
   );

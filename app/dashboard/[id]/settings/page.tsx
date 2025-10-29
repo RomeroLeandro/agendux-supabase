@@ -6,12 +6,12 @@ import { ArrowLeft } from "lucide-react";
 import { SettingsContent } from "./settings-content";
 
 interface PageProps {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }
 
 export default async function SettingsPage({ params }: PageProps) {
   // Await params para obtener el id
-  const { id } = await params;
+  const { id } = params;
 
   const supabase = await createClient();
 
@@ -68,6 +68,7 @@ export default async function SettingsPage({ params }: PageProps) {
         profile={profile}
         professions={professions || []}
         userId={user.id}
+        params={params}
       />
     </div>
   );

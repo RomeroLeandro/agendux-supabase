@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { SettingsTabs } from "./tab-settings";
 import { ProfileSettings } from "./profile-settings";
-import { AutomaticMessages } from "./automatic-messages";
+import AutomaticMessages from "./automatic-messages";
 import { GoogleCalendar } from "./google-calendar";
 import { Notifications } from "./notifications";
 import { Security } from "./security";
@@ -28,12 +28,16 @@ interface SettingsContentProps {
   profile: Profile | null;
   professions: Profession[];
   userId: string;
+  params: {
+    id: string;
+  };
 }
 
 export function SettingsContent({
   profile,
   professions,
   userId,
+  params,
 }: SettingsContentProps) {
   const [activeTab, setActiveTab] = useState("profile");
 
@@ -50,7 +54,7 @@ export function SettingsContent({
         </div>
 
         <div className={activeTab === "messages" ? "block" : "hidden"}>
-          <AutomaticMessages />
+          <AutomaticMessages params={params} />
         </div>
 
         <div className={activeTab === "google" ? "block" : "hidden"}>
