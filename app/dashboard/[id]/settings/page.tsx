@@ -6,14 +6,16 @@ import { ArrowLeft } from "lucide-react";
 import { SettingsContent } from "./settings-content";
 
 interface PageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>; // Cambiar el tipo aquí
 }
 
 export default async function SettingsPage({ params }: PageProps) {
   // Await params para obtener el id
-  const { id } = params;
+  const { id } = await params;
 
   const supabase = await createClient();
+
+  console.log("[page.tsx] Passing params to SettingsContent:", params);
 
   const {
     data: { user },
@@ -68,7 +70,7 @@ export default async function SettingsPage({ params }: PageProps) {
         profile={profile}
         professions={professions || []}
         userId={user.id}
-        params={params}
+        params={{ id }}
       />
     </div>
   );

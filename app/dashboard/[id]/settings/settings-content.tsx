@@ -41,6 +41,9 @@ export function SettingsContent({
 }: SettingsContentProps) {
   const [activeTab, setActiveTab] = useState("profile");
 
+  console.log("--- SettingsContent Render ---");
+  console.log("Received params:", params);
+  console.log("Current activeTab:", activeTab);
   return (
     <>
       <SettingsTabs activeTab={activeTab} onTabChange={setActiveTab} />
