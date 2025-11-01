@@ -1,0 +1,30 @@
+name: WhatsApp Cron Job
+
+on:
+  schedule:
+    # Se ejecuta cada 15 minutos
+    - cron: '*/15 * * * *'
+  
+  # Permite ejecutarlo manualmente desde GitHub
+  workflow_dispatch:
+
+jobs:
+  trigger-whatsapp-cron:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Trigger WhatsApp Cron Endpoint
+        run: |
+          curl -X GET https://agendux-supabase.vercel.app/api/whatsapp-cron \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            --fail \
+            --silent \
+            --show-error
+        
+      - name: Log completion
+        if: success()
+        run: echo "✅ Cron job executed successfully at $(date)"
+      
+      - name: Log failure
+        if: failure()
+        run: echo "❌ Cron job failed at $(date)"
