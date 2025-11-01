@@ -2,11 +2,8 @@ name: WhatsApp Cron Job
 
 on:
   schedule:
-    # Se ejecuta cada 15 minutos
-    - cron: '*/15 * * * *'
-  
-  # Permite ejecutarlo manualmente desde GitHub
-  workflow_dispatch:
+    - cron: '*/15 * * * *'  # Cada 15 minutos
+  workflow_dispatch:  # Permite ejecución manual
 
 jobs:
   trigger-whatsapp-cron:
@@ -23,8 +20,8 @@ jobs:
         
       - name: Log completion
         if: success()
-        run: echo "✅ Cron job executed successfully at $(date)"
+        run: echo "✅ Cron executed successfully at $(date)"
       
       - name: Log failure
         if: failure()
-        run: echo "❌ Cron job failed at $(date)"
+        run: echo "❌ Cron failed at $(date)"
