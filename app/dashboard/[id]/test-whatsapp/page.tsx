@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Typography } from "@/components/ui/typography";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -16,19 +15,22 @@ import {
   RefreshCw,
   MessageSquare,
 } from "lucide-react";
+import { Appointment, Message } from "@/app/types";
 
 interface TestResult {
   success: boolean;
   message: string;
-  data?: any;
+  data?: unknown;
 }
 
 export default function WhatsAppTestPage() {
   const supabase = createClient();
-  const [appointments, setAppointments] = useState<any[]>([]);
-  const [messages, setMessages] = useState<any[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [selectedAppointment, setSelectedAppointment] = useState("");
-  const [messageType, setMessageType] = useState("confirmation");
+  const [messageType, setMessageType] = useState<
+    "confirmation" | "reminder_1" | "reminder_2" | "post_appointment"
+  >("confirmation");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<TestResult | null>(null);
 
@@ -39,37 +41,91 @@ export default function WhatsAppTestPage() {
   }, []);
 
   const loadAppointments = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("appointments")
-      .select(`
-        id,
-        appointment_datetime,
-        status,
-        patients(full_name, phone),
-        services(name)
-      `)
+      .select(
+        `
+      id,
+      appointment_datetime,
+      status,
+      patients (
+        full_name,
+        phone
+      ),
+      services (
+        name
+      )
+    `
+      )
       .eq("user_id", user.id)
       .order("appointment_datetime", { ascending: false })
       .limit(20);
 
-    setAppointments(data || []);
+    if (error) {
+      console.error("Error loading appointments:", error);
+      return;
+    }
+
+    if (data && Array.isArray(data)) {
+      const validAppointments = data
+        .filter((item): item is NonNullable<typeof item> => item !== null)
+        .map((item): Appointment => {
+          const patients = Array.isArray(item.patients)
+            ? item.patients[0]
+            : item.patients;
+
+          const services = Array.isArray(item.services)
+            ? item.services[0]
+            : item.services;
+
+          return {
+            id: item.id,
+            appointment_datetime: item.appointment_datetime,
+            status: item.status as Appointment["status"],
+            patients: patients
+              ? {
+                  full_name: patients.full_name,
+                  phone: patients.phone,
+                }
+              : null,
+            services: services
+              ? {
+                  name: services.name,
+                }
+              : null,
+          };
+        });
+
+      setAppointments(validAppointments);
+    }
   };
 
   const loadMessages = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("whatsapp_messages")
       .select("*")
       .eq("profile_id", user.id)
       .order("sent_at", { ascending: false })
       .limit(10);
 
-    setMessages(data || []);
+    if (error) {
+      console.error("Error loading messages:", error);
+      return;
+    }
+
+    if (data) {
+      setMessages(data as Message[]);
+    }
   };
 
   const handleSendMessage = async () => {
@@ -89,7 +145,6 @@ export default function WhatsAppTestPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
         },
         body: JSON.stringify({
           appointment_id: parseInt(selectedAppointment),
@@ -159,7 +214,9 @@ export default function WhatsAppTestPage() {
       const response = await fetch("/api/whatsapp-cron", {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_CRON_SECRET || "test"}`,
+          Authorization: `Bearer ${
+            process.env.NEXT_PUBLIC_CRON_SECRET || "test"
+          }`,
         },
       });
 
@@ -202,7 +259,10 @@ export default function WhatsAppTestPage() {
             <Typography variant="heading-md" className="mb-4">
               1️⃣ Verificar Configuración Twilio
             </Typography>
-            <Typography variant="body-sm" className="text-muted-foreground mb-4">
+            <Typography
+              variant="body-sm"
+              className="text-muted-foreground mb-4"
+            >
               Verifica que las credenciales de Twilio sean correctas
             </Typography>
             <Button
@@ -274,7 +334,15 @@ export default function WhatsAppTestPage() {
                 <Label>Tipo de Mensaje</Label>
                 <select
                   value={messageType}
-                  onChange={(e) => setMessageType(e.target.value)}
+                  onChange={(e) =>
+                    setMessageType(
+                      e.target.value as
+                        | "confirmation"
+                        | "reminder_1"
+                        | "reminder_2"
+                        | "post_appointment"
+                    )
+                  }
                   className="w-full p-2 border rounded-md"
                   disabled={loading}
                 >
@@ -310,7 +378,10 @@ export default function WhatsAppTestPage() {
             <Typography variant="heading-md" className="mb-4">
               3️⃣ Ejecutar CRON Manualmente
             </Typography>
-            <Typography variant="body-sm" className="text-muted-foreground mb-4">
+            <Typography
+              variant="body-sm"
+              className="text-muted-foreground mb-4"
+            >
               Busca y envía todos los recordatorios pendientes
             </Typography>
             <Button
@@ -339,7 +410,9 @@ export default function WhatsAppTestPage() {
           {result && (
             <Alert
               className={
-                result.success ? "border-green-500 bg-green-50" : "border-red-500 bg-red-50"
+                result.success
+                  ? "border-green-500 bg-green-50"
+                  : "border-red-500 bg-red-50"
               }
             >
               <div className="flex items-start">
@@ -351,7 +424,7 @@ export default function WhatsAppTestPage() {
                 <div className="flex-1">
                   <AlertDescription>
                     <p className="font-medium mb-2">{result.message}</p>
-                    {result.data && (
+                    {result.data != null && (
                       <details className="mt-2">
                         <summary className="cursor-pointer text-xs font-medium">
                           Ver detalles
@@ -366,7 +439,6 @@ export default function WhatsAppTestPage() {
               </div>
             </Alert>
           )}
-
           {/* Últimos mensajes enviados */}
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
@@ -374,7 +446,7 @@ export default function WhatsAppTestPage() {
                 <MessageSquare className="mr-2 h-5 w-5" />
                 Últimos Mensajes
               </Typography>
-              <Button onClick={loadMessages} size="sm">
+              <Button onClick={loadMessages}>
                 <RefreshCw className="h-4 w-4" />
               </Button>
             </div>
@@ -387,7 +459,9 @@ export default function WhatsAppTestPage() {
                     className="p-3 border rounded-lg text-sm space-y-1"
                   >
                     <div className="flex justify-between items-start">
-                      <span className="font-medium">{msg.message_type}</span>
+                      <span className="font-medium capitalize">
+                        {msg.message_type?.replace("_", " ")}
+                      </span>
                       <span
                         className={`text-xs px-2 py-0.5 rounded-full ${
                           msg.status === "delivered"
@@ -406,10 +480,17 @@ export default function WhatsAppTestPage() {
                       Para: {msg.recipient}
                     </p>
                     <p className="text-xs">
-                      {new Date(msg.sent_at).toLocaleString()}
+                      {msg.sent_at
+                        ? new Date(msg.sent_at).toLocaleString("es-AR", {
+                            dateStyle: "short",
+                            timeStyle: "short",
+                          })
+                        : "Fecha desconocida"}
                     </p>
                     {msg.error_message && (
-                      <p className="text-red-600 text-xs">❌ {msg.error_message}</p>
+                      <p className="text-red-600 text-xs">
+                        ❌ {msg.error_message}
+                      </p>
                     )}
                   </div>
                 ))
@@ -426,7 +507,7 @@ export default function WhatsAppTestPage() {
             <Typography variant="heading-sm" className="mb-2">
               📌 Información
             </Typography>
-            <ul className="text-sm space-y-1">
+            <ul className="text-sm space-y-1 text-muted-foreground">
               <li>✅ Los mensajes se envían por Twilio</li>
               <li>✅ Requiere sandbox o cuenta pagada</li>
               <li>✅ Verifica la configuración en Settings</li>

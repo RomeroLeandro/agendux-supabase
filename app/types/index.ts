@@ -44,3 +44,44 @@ export interface FormField {
   is_visible: boolean;
   is_required: boolean;
 }
+
+export interface Message {
+  id: string;
+  message: string;
+  message_type?:
+    | "confirmation"
+    | "reminder_1"
+    | "reminder_2"
+    | "post_appointment"
+    | string;
+  status?: "sent" | "delivered" | "failed" | "pending" | string;
+  recipient?: string;
+  sent_at?: string;
+  error_message?: string | null;
+}
+
+export interface Appointment {
+  id: number;
+  appointment_datetime: string;
+  status: "scheduled" | "confirmed" | "completed" | "cancelled";
+  notes?: string;
+  duration_minutes?: number;
+  google_event_id?: string;
+  synced_to_google?: boolean;
+  patients: {
+    full_name: string;
+    phone: string;
+  } | null;
+  services: {
+    name: string;
+    duration_minutes?: number;
+  } | null;
+}
+
+export interface Patient {
+  id: number;
+  full_name: string;
+  phone: string;
+  email?: string;
+  created_at: string;
+}
