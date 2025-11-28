@@ -55,7 +55,7 @@ export function GeneralConfig({
     max_appointments_per_day: 8,
   });
 
-  // El useEffect para inicializar los datos no cambia.
+  // INIT + verificación slug (NO se toca lógica)
   useEffect(() => {
     const checkSlugAndInitForm = async (slugToCheck: string) => {
       if (!slugToCheck || slugToCheck.length < 3) {
@@ -169,7 +169,6 @@ export function GeneralConfig({
 
         if (error) throw error;
 
-        // Si no hay ningún registro → disponible
         if (!data || data.length === 0) {
           setSlugAvailability({
             available: true,
@@ -196,7 +195,7 @@ export function GeneralConfig({
   );
 
   const handleSave = async () => {
-    console.log("handleSave called"); // Para verificar que se ejecuta
+    console.log("handleSave called");
 
     if (
       slugAvailability.available === false &&
@@ -206,11 +205,7 @@ export function GeneralConfig({
       return;
     }
 
-    console.log("Validation passed, starting transition");
-
     startTransition(async () => {
-      console.log("Inside transition");
-
       try {
         console.log("=== INICIANDO GUARDADO ===");
         console.log("Config:", JSON.stringify(config, null, 2));
@@ -222,8 +217,6 @@ export function GeneralConfig({
         console.log("User ID:", user?.id);
 
         if (config?.id) {
-          console.log("Attempting update...");
-
           const updateData = {
             is_active: formData.is_active,
             url_slug: formData.url_slug,
@@ -234,25 +227,17 @@ export function GeneralConfig({
             max_appointments_per_day: formData.max_appointments_per_day,
           };
 
-          console.log("Update data:", JSON.stringify(updateData, null, 2));
-
           const { data, error } = await supabase
             .from("auto_agenda_config")
             .update(updateData)
             .eq("id", config.id)
             .select();
 
-          console.log("Update response:", { data, error });
-
-          if (error) {
-            throw error;
-          }
+          if (error) throw error;
 
           alert("✅ Configuración guardada exitosamente");
           window.location.reload();
         } else {
-          console.log("Attempting insert...");
-
           const { data, error } = await supabase
             .from("auto_agenda_config")
             .insert({
@@ -261,11 +246,7 @@ export function GeneralConfig({
             })
             .select();
 
-          console.log("Insert response:", { data, error });
-
-          if (error) {
-            throw error;
-          }
+          if (error) throw error;
 
           alert("✅ Configuración creada exitosamente");
           window.location.reload();
@@ -274,17 +255,11 @@ export function GeneralConfig({
         console.error("=== ERROR CAPTURADO ===");
         console.error("Error object:", error);
 
-        // Type guard para manejar el error de forma segura
         if (error && typeof error === "object" && "message" in error) {
-          console.error(
-            "Error message:",
-            (error as { message: string }).message
-          );
           alert(
             `❌ Error al guardar: ${(error as { message: string }).message}`
           );
         } else {
-          console.error("Error desconocido:", error);
           alert("❌ Error desconocido al guardar la configuración");
         }
       }
@@ -293,18 +268,20 @@ export function GeneralConfig({
 
   if (!isInitialized) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+      <div className="flex items-center justify-center py-10">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
       </div>
     );
   }
 
   const isDisabled = !formData.is_active;
 
+  // ---------- SOLO CAMBIOS DE LAYOUT / CLASES A PARTIR DE ACÁ ----------
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div>
-        <div className="flex items-center gap-3 mb-4">
+        <div className="flex items-center gap-3 mb-2">
           <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
             <span className="text-blue-600 text-sm font-bold">⚙️</span>
           </div>
@@ -312,38 +289,138 @@ export function GeneralConfig({
             Configuración General
           </Typography>
         </div>
-        <Typography variant="body-sm" className="text-muted-foreground mb-6">
-          Configuración básica de tu página pública
+        <Typography variant="body-sm" className="text-muted-foreground">
+          Definí el estado de tu Auto-Agenda, tu URL pública y la información
+          básica que verán tus pacientes.
         </Typography>
+      </div>
 
-        <div className="space-y-6">
-          <Card className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <Typography variant="body-lg" className="font-medium mb-1">
-                  Estado de la Auto-Agenda
-                </Typography>
-                <Typography variant="body-sm" className="text-muted-foreground">
-                  Los pacientes pueden agendar citas
-                </Typography>
-              </div>
-              <Switch
-                checked={formData.is_active}
-                onCheckedChange={(checked) => {
-                  setFormData((prev) => ({ ...prev, is_active: checked }));
-                }}
+      {/* Fila superior: Estado + Reglas (igual estructura que antes, solo más prolija) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="p-6 lg:col-span-2">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <Typography variant="body-lg" className="font-medium mb-1">
+                Estado de la Auto-Agenda
+              </Typography>
+              <Typography
+                variant="body-sm"
+                className="text-muted-foreground max-w-md"
+              >
+                {formData.is_active
+                  ? "Tus pacientes pueden agendar citas con este enlace."
+                  : "La página pública está desactivada por el momento."}
+              </Typography>
+            </div>
+            <Switch
+              checked={formData.is_active}
+              onCheckedChange={(checked) =>
+                setFormData((prev) => ({ ...prev, is_active: checked }))
+              }
+            />
+          </div>
+        </Card>
+
+        <Card
+          className={`p-6 ${
+            isDisabled ? "opacity-60" : ""
+          } flex flex-col justify-between`}
+        >
+          <div>
+            <Typography variant="heading-md" className="mb-1">
+              Reglas de reserva
+            </Typography>
+            <Typography
+              variant="body-sm"
+              className="text-muted-foreground mb-4"
+            >
+              Definí cómo y cuándo tus pacientes pueden agendar nuevas citas.
+            </Typography>
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="max_days_advance"
+                className={isDisabled ? "text-muted-foreground/60" : ""}
+              >
+                Días de anticipación máxima
+              </Label>
+              <Input
+                id="max_days_advance"
+                type="number"
+                value={formData.max_days_advance}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    max_days_advance: parseInt(e.target.value) || 0,
+                  }))
+                }
+                disabled={isDisabled}
+                className={isDisabled ? "opacity-50 cursor-not-allowed" : ""}
               />
             </div>
-          </Card>
 
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="min_hours_advance"
+                className={isDisabled ? "text-muted-foreground/60" : ""}
+              >
+                Horas mínimas de anticipación
+              </Label>
+              <Input
+                id="min_hours_advance"
+                type="number"
+                value={formData.min_hours_advance}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    min_hours_advance: parseInt(e.target.value) || 0,
+                  }))
+                }
+                disabled={isDisabled}
+                className={isDisabled ? "opacity-50 cursor-not-allowed" : ""}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="max_appointments_per_day"
+                className={isDisabled ? "text-muted-foreground/60" : ""}
+              >
+                Máximo de citas por día
+              </Label>
+              <Input
+                id="max_appointments_per_day"
+                type="number"
+                value={formData.max_appointments_per_day}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    max_appointments_per_day: parseInt(e.target.value) || 0,
+                  }))
+                }
+                disabled={isDisabled}
+                className={isDisabled ? "opacity-50 cursor-not-allowed" : ""}
+              />
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Fila inferior: URL + textos a la izquierda, estado URL + botón a la derecha */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* URL + título + descripción */}
+        <Card className="p-6 space-y-5 lg:col-span-2">
+          {/* URL */}
           <div className="space-y-2">
-            <Label htmlFor="url_slug">URL Personalizada</Label>
+            <Label htmlFor="url_slug">URL personalizada</Label>
             <div className="flex">
               <span
-                className={`inline-flex items-center px-3 rounded-l-md border border-r-0 border-border text-sm ${
+                className={`inline-flex items-center px-3 rounded-l-md border border-r-0 text-sm ${
                   isDisabled
-                    ? "bg-muted/50 text-muted-foreground/50"
-                    : "bg-muted text-muted-foreground"
+                    ? "bg-muted/50 text-muted-foreground/60 border-border/60"
+                    : "bg-muted text-muted-foreground border-border"
                 }`}
               >
                 agendux.com/
@@ -364,17 +441,17 @@ export function GeneralConfig({
                   return () => clearTimeout(timeoutId);
                 }}
                 disabled={isDisabled}
-                className={`rounded-l-none ${
+                className={`rounded-none border-x-0 ${
                   isDisabled ? "opacity-50 cursor-not-allowed" : ""
                 } ${
                   slugAvailability.available === false
-                    ? "border-red-500 focus-visible:ring-red-500"
+                    ? "border-red-500 focus-visible:ring-red-500/60"
                     : slugAvailability.available === true
-                    ? "border-green-500 focus-visible:ring-green-500"
+                    ? "border-green-500 focus-visible:ring-green-500/60"
                     : ""
                 }`}
               />
-              <div className="flex items-center px-3 border border-l-0 border-border rounded-r-md bg-muted min-w-8">
+              <div className="flex items-center px-3 border border-l-0 border-border rounded-r-md bg-muted min-w-9 justify-center">
                 {isCheckingSlug ? (
                   <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                 ) : slugAvailability.available === true ? (
@@ -385,27 +462,26 @@ export function GeneralConfig({
               </div>
             </div>
             <Typography
-              variant="body-sm"
-              className={`${
+              variant="body-xs"
+              className={`mt-1 ${
                 slugAvailability.available === false
                   ? "text-red-600 font-medium"
                   : slugAvailability.available === true
                   ? "text-green-600 font-medium"
                   : isDisabled
-                  ? "text-muted-foreground/50"
+                  ? "text-muted-foreground/60"
                   : "text-muted-foreground"
               }`}
             >
               {slugAvailability.message ||
-                "Esta será la URL que compartirás con tus pacientes"}
+                "Esta será la URL que compartirás con tus pacientes."}
             </Typography>
 
-            {/* Mostrar alerta adicional si está en uso */}
             {slugAvailability.available === false && (
-              <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <div className="mt-3 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5">
                 <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 shrink-0" />
-                <p className="text-sm text-red-800">
-                  No podrás guardar mientras la URL esté en uso. Prueba con:{" "}
+                <p className="text-xs text-red-800 leading-relaxed">
+                  No podrás guardar mientras la URL esté en uso. Probá con:{" "}
                   <code className="bg-red-100 px-1 rounded">
                     {formData.url_slug}-2
                   </code>{" "}
@@ -413,36 +489,39 @@ export function GeneralConfig({
                   <code className="bg-red-100 px-1 rounded">
                     {formData.url_slug}-pro
                   </code>
+                  .
                 </p>
               </div>
             )}
           </div>
 
+          {/* Título página */}
           <div className="space-y-2">
             <Label
               htmlFor="page_title"
-              className={isDisabled ? "text-muted-foreground/50" : ""}
+              className={isDisabled ? "text-muted-foreground/60" : ""}
             >
-              Título de la Página
+              Título de la página
             </Label>
             <Input
               id="page_title"
               value={formData.page_title}
-              onChange={(e) => {
+              onChange={(e) =>
                 setFormData((prev) => ({
                   ...prev,
                   page_title: e.target.value,
-                }));
-              }}
+                }))
+              }
               disabled={isDisabled}
               className={isDisabled ? "opacity-50 cursor-not-allowed" : ""}
             />
           </div>
 
+          {/* Descripción */}
           <div className="space-y-2">
             <Label
               htmlFor="page_description"
-              className={isDisabled ? "text-muted-foreground/50" : ""}
+              className={isDisabled ? "text-muted-foreground/60" : ""}
             >
               Descripción
             </Label>
@@ -450,147 +529,69 @@ export function GeneralConfig({
               id="page_description"
               rows={3}
               value={formData.page_description}
-              onChange={(e) => {
+              onChange={(e) =>
                 setFormData((prev) => ({
                   ...prev,
                   page_description: e.target.value,
-                }));
-              }}
+                }))
+              }
               disabled={isDisabled}
               className={isDisabled ? "opacity-50 cursor-not-allowed" : ""}
             />
+          </div>
+        </Card>
+
+        {/* Estado URL + botón guardar alineados a la derecha */}
+        <div className="flex flex-col gap-4">
+          {formData.is_active ? (
+            <Card className="p-4 bg-blue-50 border-blue-200">
+              <Typography
+                variant="body-sm"
+                className="text-blue-800 mb-1 font-semibold"
+              >
+                ✅ Auto-Agenda activa
+              </Typography>
+              <Typography variant="body-sm" className="text-blue-700">
+                Tus pacientes pueden agendar citas en:{" "}
+                <code className="bg-blue-100 px-2 py-1 rounded text-xs">
+                  {bookingUrl}
+                </code>
+              </Typography>
+            </Card>
+          ) : (
+            <Card className="p-4 bg-red-50 border-red-200">
+              <Typography
+                variant="body-sm"
+                className="text-red-800 mb-1 font-semibold"
+              >
+                ⚠️ Auto-Agenda desactivada
+              </Typography>
+              <Typography variant="body-sm" className="text-red-700">
+                Tu página de reservas no está disponible. La URL devolverá un
+                error 404 hasta que actives la Auto-Agenda.
+              </Typography>
+            </Card>
+          )}
+
+          <div className="mt-auto flex justify-end">
+            <Button
+              onClick={handleSave}
+              disabled={
+                isPending ||
+                (slugAvailability.available === false &&
+                  formData.url_slug !== config?.url_slug) ||
+                isCheckingSlug
+              }
+              variant="primary"
+            >
+              {isPending
+                ? "Guardando..."
+                : isCheckingSlug
+                ? "Verificando..."
+                : "Guardar cambios"}
+            </Button>
           </div>
         </div>
-      </div>
-
-      <div className={isDisabled ? "opacity-50" : ""}>
-        <Typography
-          variant="heading-lg"
-          className={`font-semibold mb-2 ${
-            isDisabled ? "text-muted-foreground/50" : ""
-          }`}
-        >
-          Reglas de Reserva
-        </Typography>
-        <Typography
-          variant="body-sm"
-          className={`mb-6 ${
-            isDisabled ? "text-muted-foreground/50" : "text-muted-foreground"
-          }`}
-        >
-          Configura las limitaciones para las citas
-        </Typography>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-2">
-            <Label
-              htmlFor="max_days_advance"
-              className={isDisabled ? "text-muted-foreground/50" : ""}
-            >
-              Días de anticipación máxima
-            </Label>
-            <Input
-              id="max_days_advance"
-              type="number"
-              value={formData.max_days_advance}
-              onChange={(e) => {
-                setFormData((prev) => ({
-                  ...prev,
-                  max_days_advance: parseInt(e.target.value) || 0,
-                }));
-              }}
-              disabled={isDisabled}
-              className={isDisabled ? "opacity-50 cursor-not-allowed" : ""}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label
-              htmlFor="min_hours_advance"
-              className={isDisabled ? "text-muted-foreground/50" : ""}
-            >
-              Horas mínimas de anticipación
-            </Label>
-            <Input
-              id="min_hours_advance"
-              type="number"
-              value={formData.min_hours_advance}
-              onChange={(e) => {
-                setFormData((prev) => ({
-                  ...prev,
-                  min_hours_advance: parseInt(e.target.value) || 0,
-                }));
-              }}
-              disabled={isDisabled}
-              className={isDisabled ? "opacity-50 cursor-not-allowed" : ""}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label
-              htmlFor="max_appointments_per_day"
-              className={isDisabled ? "text-muted-foreground/50" : ""}
-            >
-              Máximo de citas por día
-            </Label>
-            <Input
-              id="max_appointments_per_day"
-              type="number"
-              value={formData.max_appointments_per_day}
-              onChange={(e) => {
-                setFormData((prev) => ({
-                  ...prev,
-                  max_appointments_per_day: parseInt(e.target.value) || 0,
-                }));
-              }}
-              disabled={isDisabled}
-              className={isDisabled ? "opacity-50 cursor-not-allowed" : ""}
-            />
-          </div>
-        </div>
-      </div>
-
-      {!formData.is_active && (
-        <Card className="p-4 bg-red-50 border-red-200">
-          <Typography variant="body-sm" className="text-red-800 mb-2">
-            <strong>⚠️ Auto-Agenda Desactivada</strong>
-          </Typography>
-          <Typography variant="body-sm" className="text-red-700">
-            Tu página de reservas no está disponible para los pacientes. La URL
-            devolverá un error 404 hasta que actives la auto-agenda.
-          </Typography>
-        </Card>
-      )}
-
-      {formData.is_active && (
-        <Card className="p-4 bg-blue-50 border-blue-200">
-          <Typography variant="body-sm" className="text-blue-800 mb-2">
-            <strong>✅ Auto-Agenda Activa</strong>
-          </Typography>
-          <Typography variant="body-sm" className="text-blue-700">
-            Los pacientes pueden agendar citas en:{" "}
-            <code className="bg-blue-100 px-2 py-1 rounded">{bookingUrl}</code>
-          </Typography>
-        </Card>
-      )}
-
-      <div className="flex justify-end">
-        <Button
-          onClick={handleSave}
-          disabled={
-            isPending ||
-            (slugAvailability.available === false &&
-              formData.url_slug !== config?.url_slug) ||
-            isCheckingSlug
-          }
-          className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isPending
-            ? "Guardando..."
-            : isCheckingSlug
-            ? "Verificando..."
-            : "Guardar Cambios"}
-        </Button>
       </div>
     </div>
   );

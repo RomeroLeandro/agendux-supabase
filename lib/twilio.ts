@@ -35,14 +35,16 @@ export function formatMessage(template: string, data: AppointmentData) {
     profile.last_name ?? ""
   }`.trim();
 
-  return template
-    .replace(/\[PACIENTE_NOMBRE\]/g, patient.full_name ?? "")
-    .replace(/\[PROFESIONAL_NOMBRE\]/g, profesionalNombre)
-    .replace(/\[FECHA_CITA\]/g, fecha)
-    // soportamos ambos alias de hora
-    .replace(/\[HORA_INICIO_CITA\]/g, hora)
-    .replace(/\[HORA_CITA\]/g, hora)
-    .replace(/\[SERVICIO_NOMBRE\]/g, service.name ?? "");
+  return (
+    template
+      .replace(/\[PACIENTE_NOMBRE\]/g, patient.full_name ?? "")
+      .replace(/\[PROFESIONAL_NOMBRE\]/g, profesionalNombre)
+      .replace(/\[FECHA_CITA\]/g, fecha)
+      // soportamos ambos alias de hora
+      .replace(/\[HORA_INICIO_CITA\]/g, hora)
+      .replace(/\[HORA_CITA\]/g, hora)
+      .replace(/\[SERVICIO_NOMBRE\]/g, service.name ?? "")
+  );
 }
 
 export async function sendWhatsAppMessage(to: string, body: string) {
@@ -76,11 +78,19 @@ export async function sendWhatsAppMessage(to: string, body: string) {
       sid: message.sid,
       status: message.status,
     };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Error Twilio:", err);
+
+    // Intentamos extraer un mensaje legible
+    let errorMessage = "Error desconocido al enviar el mensaje con Twilio";
+
+    if (err && typeof err === "object" && "message" in err) {
+      errorMessage = String((err as { message: unknown }).message);
+    }
+
     return {
       success: false,
-      error: err.message,
+      error: errorMessage,
     };
   }
 }

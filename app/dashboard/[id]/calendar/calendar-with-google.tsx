@@ -5,6 +5,7 @@ import { CalendarView } from "./calendar-view";
 import { useGoogleCalendar } from "@/context/google-calendar-context";
 // import { useAutoSync } from "@/hooks/use-auto-sync";
 import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
 
 interface Appointment {
   id: number;
@@ -191,71 +192,78 @@ export function CalendarWithGoogleEvents({
   };
 
   return (
-    <div>
-      <div className="px-8 py-4 bg-gray-50 border-b">
-        <div className="flex items-center justify-between">
+    <div className="min-h-screen flex flex-col bg-muted/40">
+      {/* Barra de estado / controles */}
+      <div className="px-4 sm:px-8 py-3 border-b bg-background/80 backdrop-blur">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          {/* Estado de conexión */}
           <div className="flex items-center gap-2">
             {isLoadingGoogle || isCheckingConnection ? (
               <>
-                <div className="w-3 h-3 rounded-full bg-yellow-500 animate-pulse" />
-                <span className="text-sm text-muted-foreground">
+                <span className="inline-flex h-2.5 w-2.5 rounded-full bg-yellow-500 animate-pulse" />
+                <span className="text-xs sm:text-sm text-muted-foreground">
                   {isCheckingConnection
-                    ? "Verificando conexión..."
+                    ? "Verificando conexión con Google Calendar..."
                     : "Cargando y sincronizando con Google Calendar..."}
                 </span>
               </>
             ) : (
               <>
-                <div
-                  className={`w-3 h-3 rounded-full ${
+                <span
+                  className={`inline-flex h-2.5 w-2.5 rounded-full ${
                     googleCalendarConnected ? "bg-green-500" : "bg-red-500"
                   }`}
                 />
-                <span className="text-sm text-muted-foreground">
+                <span className="text-xs sm:text-sm text-muted-foreground">
                   Google Calendar:{" "}
-                  {googleCalendarConnected
-                    ? "Conectado y sincronizado"
-                    : "No conectado"}
+                  <span className="font-medium">
+                    {googleCalendarConnected
+                      ? "Conectado y sincronizado"
+                      : "No conectado"}
+                  </span>
                 </span>
               </>
             )}
           </div>
 
-          {/* Controles y botones de debug */}
-          <div className="flex items-center gap-2">
+          {/* Controles y debug */}
+          <div className="flex items-center gap-2 justify-end">
             {!googleCalendarConnected &&
               !isLoadingGoogle &&
               !isCheckingConnection && (
-                <button
-                  onClick={handleConnectGoogle}
-                  className="text-sm text-blue-500 hover:underline focus:outline-none"
+                <Button
                   type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={handleConnectGoogle}
                 >
                   Conectar
-                </button>
+                </Button>
               )}
 
-            {/* Botones temporales de debug */}
-            <button
-              onClick={refreshConnection}
-              className="text-xs text-gray-500 hover:underline px-2 py-1 rounded"
+            <Button
               type="button"
+              size="sm"
+              variant="ghost"
+              onClick={refreshConnection}
               disabled={isCheckingConnection}
+              className="text-xs text-muted-foreground"
             >
               {isCheckingConnection ? "..." : "Refresh"}
-            </button>
+            </Button>
 
-            <button
-              onClick={forceCheckConnection}
-              className="text-xs text-purple-500 hover:underline px-2 py-1 rounded"
+            <Button
               type="button"
+              size="sm"
+              variant="ghost"
+              onClick={forceCheckConnection}
+              className="text-xs text-purple-500"
             >
               Force Check
-            </button>
+            </Button>
 
-            {/* Estado actual para debug */}
-            <span className="text-xs text-gray-400 ml-2">
-              {googleCalendarConnected ? "ON" : "OFF"}
+            <span className="text-[11px] text-gray-400 ml-1">
+              Estado: {googleCalendarConnected ? "ON" : "OFF"}
             </span>
           </div>
         </div>

@@ -44,34 +44,42 @@ export function SettingsContent({
   console.log("--- SettingsContent Render ---");
   console.log("Received params:", params);
   console.log("Current activeTab:", activeTab);
+
   return (
-    <>
-      <SettingsTabs activeTab={activeTab} onTabChange={setActiveTab} />
-      <div className="mt-8">
-        <div className={activeTab === "profile" ? "block" : "hidden"}>
-          <ProfileSettings
-            profile={profile}
-            professions={professions}
-            userId={userId}
-          />
-        </div>
+    <div className="space-y-6">
+      {/* Tabs superiores */}
+      <div className="border-b border-border pb-2">
+        <SettingsTabs activeTab={activeTab} onTabChange={setActiveTab} />
+      </div>
 
-        <div className={activeTab === "messages" ? "block" : "hidden"}>
-          <AutomaticMessages params={params} />
-        </div>
+      {/* Contenido de cada pestaña */}
+      <div className="mt-4">
+        <div className="max-w-5xl mx-auto">
+          <div className={activeTab === "profile" ? "block" : "hidden"}>
+            <ProfileSettings
+              profile={profile}
+              professions={professions}
+              userId={userId}
+            />
+          </div>
 
-        <div className={activeTab === "google" ? "block" : "hidden"}>
-          <GoogleCalendar />
-        </div>
+          <div className={activeTab === "messages" ? "block" : "hidden"}>
+            <AutomaticMessages params={params} />
+          </div>
 
-        <div className={activeTab === "notifications" ? "block" : "hidden"}>
-          <Notifications />
-        </div>
+          <div className={activeTab === "google" ? "block" : "hidden"}>
+            <GoogleCalendar />
+          </div>
 
-        <div className={activeTab === "security" ? "block" : "hidden"}>
-          <Security />
+          <div className={activeTab === "notifications" ? "block" : "hidden"}>
+            <Notifications />
+          </div>
+
+          <div className={activeTab === "security" ? "block" : "hidden"}>
+            <Security />
+          </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

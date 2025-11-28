@@ -51,27 +51,34 @@ export default async function ReportsPage({
     .eq("user_id", user.id);
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <Typography variant="heading-lg">Analytics</Typography>
-        <Typography variant="body-md" className="text-muted-foreground">
-          Reportes y estadísticas de tu consultorio
-        </Typography>
-      </div>
+    <div className="min-h-screen bg-muted/40">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6">
+        <div className="mb-6 sm:mb-8">
+          <Typography variant="heading-lg" className="p-0">
+            Analytics
+          </Typography>
+          <Typography
+            variant="body-md"
+            className="text-muted-foreground p-0 mt-1"
+          >
+            Reportes y estadísticas de tu consultorio
+          </Typography>
+        </div>
 
-      <AnalyticsDashboard
-        appointments={(appointments || []).map((a) => ({
-          ...a,
-          patients: Array.isArray(a.patients)
-            ? a.patients[0] || null
-            : a.patients || null,
-          services: Array.isArray(a.services)
-            ? a.services[0] || null
-            : a.services || null,
-        }))}
-        patients={patients || []}
-        services={services || []}
-      />
+        <AnalyticsDashboard
+          appointments={(appointments || []).map((a) => ({
+            ...a,
+            patients: Array.isArray(a.patients)
+              ? a.patients[0] || null
+              : a.patients || null,
+            services: Array.isArray(a.services)
+              ? a.services[0] || null
+              : a.services || null,
+          }))}
+          patients={patients || []}
+          services={services || []}
+        />
+      </div>
     </div>
   );
 }

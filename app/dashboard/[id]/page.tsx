@@ -222,7 +222,7 @@ export default async function DashboardHomePage({
               <Typography variant="heading-md" className="p-0">
                 Citas de Hoy
               </Typography>
-              <Link href={`/dashboard/${id}/citas/hoy`}>
+              <Link href={`/dashboard/${id}/quotes/today`}>
                 <Button>
                   Ver todas <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
@@ -268,12 +268,12 @@ export default async function DashboardHomePage({
               Acciones Rápidas
             </Typography>
             <div className="space-y-2">
-              <Link href={`/dashboard/${id}/citas/nueva`} className="block">
+              <Link href={`/dashboard/${id}/quotes/new`} className="block">
                 <Button className="w-full justify-start">
                   <Plus className="h-4 w-4 mr-2" /> Nueva Cita
                 </Button>
               </Link>
-              <Link href={`/dashboard/${id}/calendario`} className="block">
+              <Link href={`/dashboard/${id}/calendar`} className="block">
                 <Button className="w-full justify-start">
                   <Calendar className="h-4 w-4 mr-2" /> Ver Agenda
                 </Button>

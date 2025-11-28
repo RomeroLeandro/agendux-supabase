@@ -14,7 +14,6 @@ interface FieldsConfigProps {
   userId: string;
 }
 
-// Define los campos disponibles y sus etiquetas
 const availableFields = [
   { id: "first_name", label: "Nombre" },
   { id: "last_name", label: "Apellido" },
@@ -37,14 +36,7 @@ export function FieldsConfig({ userId }: FieldsConfigProps) {
         .select("*")
         .eq("user_id", userId);
 
-      if (error) {
-        console.error("Error fetching form fields:", error);
-        setIsLoading(false);
-        return;
-      }
-
-      // Si el usuario ya tiene campos guardados, los usamos
-      if (data && data.length > 0) {
+      if (!error && data && data.length > 0) {
         const userFields = availableFields.map((af) => {
           const savedField = data.find((df) => df.field_name === af.id);
           return savedField
@@ -53,17 +45,17 @@ export function FieldsConfig({ userId }: FieldsConfigProps) {
                 is_visible: savedField.is_visible,
                 is_required: savedField.is_required,
               }
-            : { field_name: af.id, is_visible: true, is_required: true }; // Fallback por si se añade un nuevo campo
+            : { field_name: af.id, is_visible: true, is_required: true };
         });
         setFields(userFields);
       } else {
-        // Si no, creamos la configuración por defecto (todos visibles y requeridos)
-        const defaultFields = availableFields.map((field) => ({
-          field_name: field.id,
-          is_visible: true,
-          is_required: true,
-        }));
-        setFields(defaultFields);
+        setFields(
+          availableFields.map((field) => ({
+            field_name: field.id,
+            is_visible: true,
+            is_required: true,
+          }))
+        );
       }
 
       setIsLoading(false);
@@ -77,17 +69,14 @@ export function FieldsConfig({ userId }: FieldsConfigProps) {
     property: "is_visible" | "is_required",
     value: boolean
   ) => {
-    setFields((prevFields) =>
-      prevFields.map((field) => {
-        if (field.field_name === fieldName) {
-          const updatedField = { ...field, [property]: value };
-          // Lógica: si un campo no es visible, tampoco puede ser requerido.
-          if (property === "is_visible" && !value) {
-            updatedField.is_required = false;
-          }
-          return updatedField;
+    setFields((prev) =>
+      prev.map((f) => {
+        if (f.field_name === fieldName) {
+          const updated = { ...f, [property]: value };
+          if (property === "is_visible" && !value) updated.is_required = false;
+          return updated;
         }
-        return field;
+        return f;
       })
     );
   };
@@ -95,26 +84,24 @@ export function FieldsConfig({ userId }: FieldsConfigProps) {
   const handleSaveChanges = async () => {
     startTransition(async () => {
       try {
-        // La función `upsert` es perfecta aquí: actualiza si existe, o inserta si no.
-        const dataToSave = fields.map((field) => ({
+        const upsertPayload = fields.map((f) => ({
           user_id: userId,
-          field_name: field.field_name,
-          is_visible: field.is_visible,
-          is_required: field.is_required,
+          field_name: f.field_name,
+          is_visible: f.is_visible,
+          is_required: f.is_required,
         }));
 
         const { error } = await supabase
           .from("form_fields")
-          .upsert(dataToSave, {
+          .upsert(upsertPayload, {
             onConflict: "user_id, field_name",
           });
 
         if (error) throw error;
-
         alert("Configuración de campos guardada.");
       } catch (error) {
-        console.error("Error saving form fields:", error);
-        alert("Hubo un error al guardar los campos.");
+        console.error(error);
+        alert("Error al guardar");
       }
     });
   };
@@ -128,56 +115,57 @@ export function FieldsConfig({ userId }: FieldsConfigProps) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+    <div className="space-y-8">
+      {/* TITULO */}
+      <div className="flex items-center gap-3 mb-2">
+        <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center shadow-sm">
           <FileText size={20} className="text-orange-600" />
         </div>
         <div>
           <Typography variant="heading-lg" className="font-semibold">
             Campos del Formulario
           </Typography>
-          <Typography variant="body-sm" className="text-muted-foreground">
-            Define qué información solicitar a tus clientes al agendar.
+          <Typography variant="body-sm" className="text-muted-foreground mt-1">
+            Seleccioná la información que querés solicitar al agendar.
           </Typography>
         </div>
       </div>
 
-      <Card>
-        <div className="p-4 border-b grid grid-cols-3 font-medium text-sm text-muted-foreground">
-          <div className="col-span-1">Campo</div>
+      {/* TABLA */}
+      <Card className="overflow-hidden shadow-sm border border-border/60 rounded-xl">
+        <div className="p-4 bg-muted/50 grid grid-cols-3 font-medium text-xs text-muted-foreground uppercase tracking-wide">
+          <div>Campo</div>
           <div className="text-center">Visible</div>
           <div className="text-center">Requerido</div>
         </div>
-        <div className="divide-y divide-border">
+
+        <div className="divide-y divide-border/60">
           {fields.map((field) => {
             const fieldInfo = availableFields.find(
-              (af) => af.id === field.field_name
+              (f) => f.id === field.field_name
             );
             if (!fieldInfo) return null;
 
             return (
               <div
                 key={field.field_name}
-                className="p-4 grid grid-cols-3 items-center"
+                className="p-4 grid grid-cols-3 items-center hover:bg-muted/40 transition-colors"
               >
-                <div className="col-span-1">
-                  <Label htmlFor={`visible-${field.field_name}`}>
-                    {fieldInfo.label}
-                  </Label>
-                </div>
-                <div className="text-center">
+                <Label className="font-medium">{fieldInfo.label}</Label>
+
+                {/* Visible */}
+                <div className="flex justify-center">
                   <Switch
-                    id={`visible-${field.field_name}`}
                     checked={field.is_visible}
                     onCheckedChange={(checked) =>
                       handleFieldChange(field.field_name, "is_visible", checked)
                     }
                   />
                 </div>
-                <div className="text-center">
+
+                {/* Required */}
+                <div className="flex justify-center">
                   <Switch
-                    id={`required-${field.field_name}`}
                     checked={field.is_required}
                     onCheckedChange={(checked) =>
                       handleFieldChange(
@@ -186,7 +174,7 @@ export function FieldsConfig({ userId }: FieldsConfigProps) {
                         checked
                       )
                     }
-                    disabled={!field.is_visible} // Un campo no puede ser requerido si no es visible
+                    disabled={!field.is_visible}
                   />
                 </div>
               </div>
@@ -195,11 +183,12 @@ export function FieldsConfig({ userId }: FieldsConfigProps) {
         </div>
       </Card>
 
+      {/* BOTON GUARDAR */}
       <div className="flex justify-end">
         <Button
           onClick={handleSaveChanges}
           disabled={isSaving}
-          className="bg-purple-600 hover:bg-purple-700"
+          variant="primary"
         >
           {isSaving ? "Guardando..." : "Guardar Cambios"}
         </Button>

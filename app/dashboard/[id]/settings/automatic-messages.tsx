@@ -16,14 +16,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-// ¡Importante! Usamos TU componente Card. Verifica que esta ruta sea correcta.
 import { Card } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Database } from "@/types/supabase";
 
-// --- El Schema de Zod (sin cambios) ---
+// --- Schema Zod (igual) ---
 const formSchema = z.object({
   is_active: z.boolean(),
   confirmation_template: z.string().optional(),
@@ -40,48 +39,47 @@ type FormValues = z.infer<typeof formSchema>;
 type WhatsappSettingsInsert =
   Database["public"]["Tables"]["whatsapp_settings"]["Insert"];
 
-// --- Componente de Ayuda (Adaptado a tu Card) ---
+// --- Columna de ayuda ---
 const VariablesCheatSheet = () => (
-  <Card className="bg-muted/50 sticky top-24">
-    {/* Reemplazamos <CardHeader> y <CardTitle> */}
-    <div className="mb-4">
-      <h3 className="text-lg font-medium">Variables Disponibles</h3>
-    </div>
-
-    {/* Reemplazamos <CardContent> */}
+  <Card className="bg-muted/40 border-dashed sticky top-24 p-5 space-y-3">
     <div>
-      <p className="text-sm">
+      <h3 className="text-base font-semibold">Variables disponibles</h3>
+      <p className="text-xs text-muted-foreground mt-1">
         Usa estas variables en tus plantillas. Se reemplazarán automáticamente.
       </p>
-      <ul className="list-disc pl-5 mt-2 space-y-1 text-sm text-muted-foreground">
-        <li>
-          <code>[PACIENTE_NOMBRE]</code>
-        </li>
-        <li>
-          <code>[PROFESIONAL_NOMBRE]</code>
-        </li>
-        <li>
-          <code>[FECHA_CITA]</code>
-        </li>
-        <li>
-          <code>[HORA_INICIO_CITA]</code>
-        </li>
-        <li>
-          <code>[SERVICIO_NOMBRE]</code>
-        </li>
-      </ul>
-      <p className="text-sm mt-3 font-medium">
-        Importante: En tu mensaje de confirmación, recuerda pedir al paciente
-        que responda:
+    </div>
+
+    <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
+      <li>
+        <code>[PACIENTE_NOMBRE]</code>
+      </li>
+      <li>
+        <code>[PROFESIONAL_NOMBRE]</code>
+      </li>
+      <li>
+        <code>[FECHA_CITA]</code>
+      </li>
+      <li>
+        <code>[HORA_INICIO_CITA]</code>
+      </li>
+      <li>
+        <code>[SERVICIO_NOMBRE]</code>
+      </li>
+    </ul>
+
+    <div className="pt-2 border-t border-border/50">
+      <p className="text-xs font-medium">Importante</p>
+      <p className="text-xs text-muted-foreground mt-1">
+        En tu mensaje de confirmación, recordá pedir al paciente que responda:
       </p>
-      <p className="text-sm text-muted-foreground">
+      <p className="text-xs text-muted-foreground mt-1">
         Responde <strong>CONFIRMAR</strong> o <strong>CANCELAR</strong>
       </p>
     </div>
   </Card>
 );
 
-// --- Componente Principal del Formulario (Adaptado a tu Card) ---
+// --- Formulario principal ---
 export default function AutomaticMessages({
   params,
 }: {
@@ -91,7 +89,6 @@ export default function AutomaticMessages({
   const [isLoading, setIsLoading] = useState(false);
   const [settingsId, setSettingsId] = useState<string | null>(null);
 
-  // La lógica de useForm (sin cambios)
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -107,7 +104,6 @@ export default function AutomaticMessages({
     },
   });
 
-  // La lógica de loadSettings (sin cambios)
   useEffect(() => {
     async function loadSettings() {
       const { data, error } = await supabase
@@ -131,11 +127,13 @@ export default function AutomaticMessages({
             data.post_appointment_delay_minutes ?? 60,
         });
       }
+      if (error) {
+        console.error(error);
+      }
     }
     loadSettings();
   }, [supabase, params.id, form]);
 
-  // La lógica de onSubmit (sin cambios)
   async function onSubmit(values: FormValues) {
     setIsLoading(true);
 
@@ -176,229 +174,278 @@ export default function AutomaticMessages({
     setIsLoading(false);
   }
 
-  // --- JSX Adaptado ---
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <div className="lg:col-span-2">
+    <div className="grid gap-8 lg:grid-cols-[minmax(0,2.1fr)_minmax(260px,0.9fr)]">
+      <div className="space-y-6">
+        {/* Header de la sección */}
+        <div className="space-y-1">
+          <h2 className="text-xl font-semibold">Mensajes automáticos</h2>
+          <p className="text-sm text-muted-foreground">
+            Configurá las plantillas de WhatsApp que se enviarán automáticamente
+            a tus pacientes.
+          </p>
+        </div>
+
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            {/* --- Tarjeta de Activación --- */}
-            <Card>
-              <div className="mb-4">
-                <h3 className="text-lg font-medium">
-                  Mensajería Automática de WhatsApp
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-6 pb-4"
+          >
+            {/* Activación */}
+            <Card className="p-5 space-y-4">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-base font-semibold">
+                    Mensajería automática de WhatsApp
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Activá o desactivá todos los mensajes automáticos.
+                  </p>
+                </div>
+              </div>
+
+              <FormField
+                control={form.control}
+                name="is_active"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border bg-muted/40 px-4 py-3">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-sm font-medium">
+                        Activar mensajes
+                      </FormLabel>
+                      <FormDescription className="text-xs">
+                        Enviar confirmaciones, recordatorios y mensajes
+                        post-cita de forma automática.
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </Card>
+
+            {/* Confirmación */}
+            <Card className="p-5 space-y-4">
+              <div>
+                <h3 className="text-base font-semibold">
+                  1. Mensaje de confirmación
                 </h3>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Se envía automáticamente cuando se crea una nueva cita.
+                </p>
               </div>
-              <div className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="is_active"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-base">
-                          Activar mensajes
-                        </FormLabel>
-                        <FormDescription>
-                          Habilita el envío de confirmaciones y recordatorios
-                          para tus citas.
-                        </FormDescription>
-                      </div>
+
+              <FormField
+                control={form.control}
+                name="confirmation_delay_minutes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm">Tiempo de envío</FormLabel>
+                    <div className="flex items-center gap-2 text-sm">
+                      <span>Enviar</span>
                       <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
+                        <Input type="number" className="w-20 h-9" {...field} />
                       </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </div>
+                      <span>minutos DESPUÉS de agendar.</span>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="confirmation_template"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm">
+                      Plantilla del mensaje
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea
+                        rows={4}
+                        className="resize-none"
+                        placeholder="¡Hola [PACIENTE_NOMBRE]! Tenés una cita para [SERVICIO_NOMBRE] el [FECHA_CITA] a las [HORA_INICIO_CITA]. Respondé CONFIRMAR o CANCELAR."
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </Card>
 
-            {/* --- Tarjeta de Mensaje de Confirmación --- */}
-            <Card>
-              <div className="mb-4">
-                <h3 className="text-lg font-medium">
-                  1. Mensaje de Confirmación
+            {/* Primer recordatorio */}
+            <Card className="p-5 space-y-4">
+              <div>
+                <h3 className="text-base font-semibold">
+                  2. Primer recordatorio
                 </h3>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Ideal para recordarle al paciente el día anterior.
+                </p>
               </div>
-              <div className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="confirmation_delay_minutes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tiempo de envío</FormLabel>
-                      <div className="flex items-center gap-2">
-                        <span>Enviar</span>
-                        <FormControl>
-                          <Input type="number" className="w-20" {...field} />
-                        </FormControl>
-                        <span>minutos DESPUÉS de agendar.</span>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="confirmation_template"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Plantilla del Mensaje</FormLabel>
+
+              <FormField
+                control={form.control}
+                name="reminder_1_hours_before"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm">Tiempo de envío</FormLabel>
+                    <div className="flex items-center gap-2 text-sm">
+                      <span>Enviar</span>
                       <FormControl>
-                        <Textarea
-                          rows={4}
-                          placeholder="¡Hola [PACIENTE_NOMBRE]! Tienes una cita para [SERVICIO_NOMBRE] el [FECHA_CITA] a las [HORA_INICIO_CITA]. Responde 'CONFIRMAR' o 'CANCELAR'."
-                          {...field}
-                        />
+                        <Input type="number" className="w-20 h-9" {...field} />
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                      <span>horas ANTES de la cita.</span>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="reminder_1_template"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm">
+                      Plantilla del mensaje
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea
+                        rows={4}
+                        className="resize-none"
+                        placeholder="¡Hola [PACIENTE_NOMBRE]! Te recordamos tu cita para [SERVICIO_NOMBRE] mañana a las [HORA_INICIO_CITA]."
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </Card>
 
-            {/* --- Tarjeta de Primer Recordatorio --- */}
-            <Card>
-              <div className="mb-4">
-                <h3 className="text-lg font-medium">2. Primer Recordatorio</h3>
+            {/* Segundo recordatorio */}
+            <Card className="p-5 space-y-4">
+              <div>
+                <h3 className="text-base font-semibold">
+                  3. Segundo recordatorio
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Útil para unas horas antes de la consulta.
+                </p>
               </div>
-              <div className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="reminder_1_hours_before"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tiempo de envío</FormLabel>
-                      <div className="flex items-center gap-2">
-                        <span>Enviar</span>
-                        <FormControl>
-                          <Input type="number" className="w-20" {...field} />
-                        </FormControl>
-                        <span>horas ANTES de la cita.</span>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="reminder_1_template"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Plantilla del Mensaje</FormLabel>
+
+              <FormField
+                control={form.control}
+                name="reminder_2_hours_before"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm">Tiempo de envío</FormLabel>
+                    <div className="flex items-center gap-2 text-sm">
+                      <span>Enviar</span>
                       <FormControl>
-                        <Textarea
-                          rows={4}
-                          placeholder="¡Hola [PACIENTE_NOMBRE]! Te recordamos tu cita para [SERVICIO_NOMBRE] mañana a las [HORA_INICIO_CITA]."
-                          {...field}
-                        />
+                        <Input type="number" className="w-20 h-9" {...field} />
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                      <span>horas ANTES de la cita.</span>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="reminder_2_template"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm">
+                      Plantilla del mensaje
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea
+                        rows={4}
+                        className="resize-none"
+                        placeholder="¡[PACIENTE_NOMBRE]! Tu cita con [PROFESIONAL_NOMBRE] es hoy a las [HORA_INICIO_CITA]."
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </Card>
 
-            {/* --- Tarjeta de Segundo Recordatorio --- */}
-            <Card>
-              <div className="mb-4">
-                <h3 className="text-lg font-medium">3. Segundo Recordatorio</h3>
+            {/* Post-cita */}
+            <Card className="p-5 space-y-4">
+              <div>
+                <h3 className="text-base font-semibold">
+                  4. Mensaje post-cita
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Perfecto para agradecimiento, encuestas o próximos pasos.
+                </p>
               </div>
-              <div className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="reminder_2_hours_before"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tiempo de envío</FormLabel>
-                      <div className="flex items-center gap-2">
-                        <span>Enviar</span>
-                        <FormControl>
-                          <Input type="number" className="w-20" {...field} />
-                        </FormControl>
-                        <span>horas ANTES de la cita.</span>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="reminder_2_template"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Plantilla del Mensaje</FormLabel>
+
+              <FormField
+                control={form.control}
+                name="post_appointment_delay_minutes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm">Tiempo de envío</FormLabel>
+                    <div className="flex items-center gap-2 text-sm">
+                      <span>Enviar</span>
                       <FormControl>
-                        <Textarea
-                          rows={4}
-                          placeholder="¡[PACIENTE_NOMBRE]! Tu cita con [PROFESIONAL_NOMBRE] es hoy a las [HORA_INICIO_CITA]."
-                          {...field}
-                        />
+                        <Input type="number" className="w-20 h-9" {...field} />
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                      <span>minutos DESPUÉS de la cita.</span>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="post_appointment_template"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm">
+                      Plantilla del mensaje
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea
+                        rows={4}
+                        className="resize-none"
+                        placeholder="¡Gracias por tu visita, [PACIENTE_NOMBRE]! Esperamos verte pronto."
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </Card>
 
-            {/* --- Tarjeta de Mensaje Post-Cita --- */}
-            <Card>
-              <div className="mb-4">
-                <h3 className="text-lg font-medium">4. Mensaje Post-Cita</h3>
-              </div>
-              <div className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="post_appointment_delay_minutes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tiempo de envío</FormLabel>
-                      <div className="flex items-center gap-2">
-                        <span>Enviar</span>
-                        <FormControl>
-                          <Input type="number" className="w-20" {...field} />
-                        </FormControl>
-                        <span>minutos DESPUÉS de la cita.</span>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="post_appointment_template"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Plantilla del Mensaje</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          rows={4}
-                          placeholder="¡Gracias por tu visita, [PACIENTE_NOMBRE]! Esperamos verte pronto."
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </Card>
-
-            <Button type="submit" disabled={isLoading} className="w-full">
-              {isLoading ? "Guardando..." : "Guardar Configuración de Mensajes"}
-            </Button>
+            <div className="flex justify-end">
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full sm:w-auto px-8"
+              >
+                {isLoading
+                  ? "Guardando..."
+                  : "Guardar configuración de mensajes"}
+              </Button>
+            </div>
           </form>
         </Form>
       </div>
 
-      {/* --- Columna de Ayuda --- */}
-      <div className="lg:col-span-1">
+      {/* Columna derecha */}
+      <div className="lg:block">
         <VariablesCheatSheet />
       </div>
     </div>

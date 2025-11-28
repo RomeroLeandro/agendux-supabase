@@ -65,7 +65,6 @@ export function DuplicateSlugHandler({
       console.log("User ID:", userId);
       console.log("Current config:", currentConfig);
 
-      // Buscar todas las configuraciones con el mismo url_slug
       const { data, error } = await supabase
         .from("auto_agenda_config")
         .select("id, url_slug, user_id, created_at")
@@ -85,7 +84,6 @@ export function DuplicateSlugHandler({
           `⚠️ DUPLICADOS ENCONTRADOS: ${data.length} configuraciones`
         );
 
-        // Verificar si el usuario actual tiene múltiples configuraciones
         const userConfigs = data.filter((d) => d.user_id === userId);
         const otherConfigs = data.filter((d) => d.user_id !== userId);
 
@@ -98,7 +96,6 @@ export function DuplicateSlugHandler({
           allConfigs: data,
         });
 
-        // Generar un nuevo slug sugerido
         const baseName = currentConfig.url_slug.replace(/-\d+$/, "");
         const suggestedSlug = `${baseName}-${Date.now().toString().slice(-6)}`;
         setNewSlug(suggestedSlug);
@@ -138,13 +135,11 @@ export function DuplicateSlugHandler({
         return;
       }
 
-      // Si no hay resultados, está disponible
       if (!data || data.length === 0) {
         setSlugAvailable(true);
         return;
       }
 
-      // Si hay resultados, no está disponible
       setSlugAvailable(false);
     } catch (error) {
       console.error("Error en checkSlugAvailability:", error);
@@ -188,7 +183,6 @@ export function DuplicateSlugHandler({
     }
   };
 
-  // Debounce para verificar disponibilidad
   useEffect(() => {
     if (!newSlug) return;
 
@@ -200,48 +194,56 @@ export function DuplicateSlugHandler({
   }, [newSlug]);
 
   if (isChecking) {
-    return null; // O puedes mostrar un loader si quieres
+    return null;
   }
 
   return (
     <Dialog open={showDialog} onOpenChange={setShowDialog}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[620px] rounded-2xl border border-border/70 shadow-xl">
         <DialogHeader>
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
-              <AlertTriangle className="h-6 w-6 text-orange-600" />
+            <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+              <AlertTriangle className="h-5 w-5 text-amber-600" />
             </div>
             <div>
-              <DialogTitle className="text-xl text-orange-600">
-                URL Duplicada Detectada
+              <DialogTitle className="text-lg sm:text-xl text-amber-700">
+                URL duplicada detectada
               </DialogTitle>
+              <p className="text-xs text-muted-foreground mt-1">
+                Necesitamos que definas una dirección única para tu página.
+              </p>
             </div>
           </div>
-          <DialogDescription className="text-base text-foreground pt-2">
-            Hemos detectado que la URL{" "}
-            <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+          <DialogDescription className="text-sm text-foreground pt-2 leading-relaxed">
+            Detectamos que la URL{" "}
+            <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-mono">
               {currentConfig?.url_slug}
-            </code>{" "}
+            </span>{" "}
             está siendo usada por{" "}
-            <strong>{duplicateInfo?.duplicateCount} configuraciones</strong>.
+            <span className="font-semibold">
+              {duplicateInfo?.duplicateCount} configuraciones
+            </span>
+            .
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
-            <p className="text-sm text-orange-800 mb-2">
-              <strong>¿Por qué es un problema?</strong>
+        <div className="space-y-5 py-4">
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+            <p className="text-sm font-medium text-amber-900 mb-1.5">
+              ¿Por qué es importante?
             </p>
-            <p className="text-sm text-orange-700">
-              Tener URLs duplicadas puede causar conflictos al intentar guardar
-              cambios y puede confundir a tus pacientes sobre cuál es tu página
-              correcta.
+            <p className="text-xs sm:text-sm text-amber-800">
+              Tener URLs duplicadas puede generar conflictos al guardar cambios
+              y confundir a tus pacientes sobre cuál enlace es el correcto. Te
+              recomendamos dejar una URL única y clara para tu página.
             </p>
           </div>
 
-          <div className="space-y-3">
-            <Label htmlFor="new-slug">Nueva URL única</Label>
-            <div className="flex items-center gap-2">
+          <div className="space-y-2.5">
+            <Label htmlFor="new-slug" className="text-sm font-medium">
+              Elegí una nueva URL única
+            </Label>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
               <span className="text-sm text-muted-foreground whitespace-nowrap">
                 agendux.com/
               </span>
@@ -256,13 +258,13 @@ export function DuplicateSlugHandler({
                       .replace(/--+/g, "-");
                     setNewSlug(value);
                   }}
-                  className={
+                  className={`pr-9 ${
                     slugAvailable === true
-                      ? "border-green-500"
+                      ? "border-green-500 focus-visible:ring-green-500/40"
                       : slugAvailable === false
-                      ? "border-red-500"
+                      ? "border-red-500 focus-visible:ring-red-500/40"
                       : ""
-                  }
+                  }`}
                   placeholder="tu-nombre-unico"
                 />
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -276,39 +278,49 @@ export function DuplicateSlugHandler({
                 </div>
               </div>
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs text-muted-foreground mt-1">
               {isCheckingSlug
                 ? "Verificando disponibilidad..."
                 : slugAvailable === true
-                ? "✅ Esta URL está disponible"
+                ? "Esta URL está disponible."
                 : slugAvailable === false
-                ? "❌ Esta URL ya está en uso"
-                : "Escribe una URL única para continuar"}
+                ? "Esta URL ya está en uso, probá con otra."
+                : "Usá solo letras, números y guiones (-)."}
             </p>
           </div>
 
           {duplicateInfo && duplicateInfo.allConfigs.length > 0 && (
-            <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
-              <p className="text-sm font-medium text-gray-900 mb-2">
+            <div className="rounded-lg border border-border bg-muted/50 px-3 py-3">
+              <p className="text-xs font-medium text-foreground mb-2">
                 Configuraciones encontradas:
               </p>
-              <ul className="text-xs text-gray-600 space-y-1">
+              <ul className="text-[11px] sm:text-xs text-muted-foreground space-y-1.5 max-h-32 overflow-y-auto">
                 {duplicateInfo.allConfigs.map((config, index) => (
                   <li
                     key={config.id}
-                    className={
+                    className={`flex flex-wrap items-center gap-1 ${
                       config.id === currentConfig?.id
-                        ? "font-bold text-orange-600"
+                        ? "font-semibold text-amber-700"
                         : ""
-                    }
+                    }`}
                   >
-                    {index + 1}. ID: {config.id.slice(0, 8)}... |{" "}
-                    {config.user_id === userId
-                      ? "Tu configuración"
-                      : "Otro usuario"}{" "}
-                    | {new Date(config.created_at).toLocaleDateString()}
-                    {config.id === currentConfig?.id &&
-                      " ← Tu configuración actual"}
+                    <span className="text-[11px]">
+                      {index + 1}. ID: {config.id.slice(0, 8)}...
+                    </span>
+                    <span className="text-[11px]">
+                      •{" "}
+                      {config.user_id === userId
+                        ? "Tu configuración"
+                        : "Otro usuario"}
+                    </span>
+                    <span className="text-[11px]">
+                      • {new Date(config.created_at).toLocaleDateString()}
+                    </span>
+                    {config.id === currentConfig?.id && (
+                      <span className="ml-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] text-amber-800">
+                        Actual
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -316,8 +328,9 @@ export function DuplicateSlugHandler({
           )}
         </div>
 
-        <DialogFooter className="flex-col sm:flex-row gap-2">
+        <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-3">
           <Button
+            variant="outline"
             onClick={() => setShowDialog(false)}
             className="w-full sm:w-auto"
           >
@@ -326,7 +339,7 @@ export function DuplicateSlugHandler({
           <Button
             onClick={handleUpdateSlug}
             disabled={isUpdating || slugAvailable !== true || isCheckingSlug}
-            className="w-full sm:w-auto bg-orange-600 hover:bg-orange-700"
+            className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700"
           >
             {isUpdating ? (
               <>

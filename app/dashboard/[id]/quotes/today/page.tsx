@@ -227,230 +227,286 @@ export default function TodaysAppointmentsPage({
     }
   };
 
-  if (loading) return <div className="p-8">Cargando citas...</div>;
+  if (loading)
+    return (
+      <div className="min-h-screen flex items-center justify-center text-muted-foreground">
+        Cargando citas...
+      </div>
+    );
 
   return (
-    <div className="p-8 space-y-6">
-      <header className="flex justify-between items-center">
-        <div>
-          <Typography variant="heading-lg">Citas de Hoy</Typography>
-          <Typography
-            variant="body-md"
-            className="text-muted-foreground capitalize"
-          >
-            {todayFormatted}
-          </Typography>
-        </div>
-        <Button onClick={() => router.push(`/dashboard/${userId}/citas/nueva`)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nueva Cita
-        </Button>
-      </header>
-
-      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="p-4">
-          <Typography variant="body-md" className="p-0 text-muted-foreground">
-            Total Citas
-          </Typography>
-          <Typography variant="heading-xl" className="p-0">
-            {stats.total}
-          </Typography>
-        </Card>
-        <Card className="p-4">
-          <Typography variant="body-md" className="p-0 text-muted-foreground">
-            Confirmadas
-          </Typography>
-          <Typography variant="heading-xl" className="p-0 text-green-600">
-            {stats.confirmed}
-          </Typography>
-        </Card>
-        <Card className="p-4">
-          <Typography variant="body-md" className="p-0 text-muted-foreground">
-            Pendientes
-          </Typography>
-          <Typography variant="heading-xl" className="p-0 text-yellow-600">
-            {stats.pending}
-          </Typography>
-        </Card>
-        <Card className="p-4">
-          <Typography variant="body-md" className="p-0 text-muted-foreground">
-            Canceladas
-          </Typography>
-          <Typography variant="heading-xl" className="p-0 text-red-600">
-            {stats.cancelled}
-          </Typography>
-        </Card>
-      </section>
-
-      <section>
-        <Card className="p-4 flex flex-col md:flex-row items-center gap-4">
-          <div className="relative flex-grow w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por paciente o servicio..."
-              className="pl-10"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+    <div className="min-h-screen bg-muted/40">
+      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-10 space-y-6">
+        <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <Typography variant="heading-lg" className="p-0">
+              Citas de Hoy
+            </Typography>
+            <Typography
+              variant="body-md"
+              className="text-muted-foreground capitalize p-0"
+            >
+              {todayFormatted}
+            </Typography>
           </div>
-          <Select onValueChange={setStatusFilter} defaultValue="all">
-            <SelectTrigger className="w-full md:w-[200px]">
-              <SelectValue placeholder="Estado..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los estados</SelectItem>
-              <SelectItem value="confirmed">Confirmadas</SelectItem>
-              <SelectItem value="scheduled">Pendientes</SelectItem>
-              <SelectItem value="cancelled">Cancelada</SelectItem>
-            </SelectContent>
-          </Select>
-        </Card>
-      </section>
+          <Button
+            size="sm"
+            variant="primary"
+            onClick={() => router.push(`/dashboard/${userId}/quotes/new`)}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Nueva Cita
+          </Button>
+        </header>
 
-      <section>
-        <Typography variant="heading-md" className="mb-4">
-          Lista de Citas ({filteredAppointments.length})
-        </Typography>
-        <div className="space-y-4">
-          {filteredAppointments.length > 0 ? (
-            filteredAppointments.map((app) => {
-              const statusInfo = getStatusInfo(app.status);
-              return (
-                <Card key={app.id} className="p-4 flex gap-x-4 items-start">
-                  <div className="text-center w-16 flex-shrink-0">
-                    <Typography variant="body-lg" className="p-0 font-bold">
-                      {new Date(app.appointment_datetime).toLocaleTimeString(
-                        "es-AR",
-                        { hour: "2-digit", minute: "2-digit" }
-                      )}
-                    </Typography>
-                  </div>
-                  <div className="flex-grow">
-                    <div className="flex items-center gap-x-2 mb-1">
-                      <Typography variant="heading-sm" className="p-0">
-                        {app.patients.full_name}
-                      </Typography>
-                      <span
-                        className={`px-2 py-0.5 text-xs font-semibold rounded-full ${statusInfo.color}`}
-                      >
-                        {statusInfo.text}
-                      </span>
-                    </div>
-                    <Typography
-                      variant="body-sm"
-                      className="text-muted-foreground"
-                    >
-                      {app.services.name} • {app.duration_minutes} min •{" "}
-                      {app.patients.phone}
-                    </Typography>
-                    <p className="text-sm mt-2 italic text-muted-foreground">
-                      {app.notes || "Sin notas adicionales."}
-                    </p>
-                  </div>
-                  <div className="flex gap-x-1">
-                    <Button disabled>
-                      <Calendar className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        setEditingAppointment(app);
-                        setIsEditDialogOpen(true);
-                      }}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      className="hover:text-destructive"
-                      onClick={() => {
-                        setAppointmentToDelete(app);
-                        setIsDeleteDialogOpen(true);
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </Card>
-              );
-            })
-          ) : (
-            <p className="text-center text-muted-foreground py-8">
-              No hay citas para mostrar con los filtros actuales.
-            </p>
-          )}
-        </div>
-      </section>
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="p-4 flex flex-col gap-1">
+            <Typography variant="body-sm" className="p-0 text-muted-foreground">
+              Total Citas
+            </Typography>
+            <Typography variant="heading-xl" className="p-0">
+              {stats.total}
+            </Typography>
+          </Card>
+          <Card className="p-4 flex flex-col gap-1">
+            <Typography variant="body-sm" className="p-0 text-muted-foreground">
+              Confirmadas
+            </Typography>
+            <Typography variant="heading-xl" className="p-0 text-green-600">
+              {stats.confirmed}
+            </Typography>
+          </Card>
+          <Card className="p-4 flex flex-col gap-1">
+            <Typography variant="body-sm" className="p-0 text-muted-foreground">
+              Pendientes
+            </Typography>
+            <Typography variant="heading-xl" className="p-0 text-yellow-600">
+              {stats.pending}
+            </Typography>
+          </Card>
+          <Card className="p-4 flex flex-col gap-1">
+            <Typography variant="body-sm" className="p-0 text-muted-foreground">
+              Canceladas
+            </Typography>
+            <Typography variant="heading-xl" className="p-0 text-red-600">
+              {stats.cancelled}
+            </Typography>
+          </Card>
+        </section>
 
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar Cita</DialogTitle>
-            <DialogDescription>
-              Actualizá el estado o las notas de la cita.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleUpdateAppointment}>
-            <div className="py-4 space-y-4">
-              <div className="space-y-2">
-                <Label>Estado</Label>
-                <Select
-                  onValueChange={(value) =>
-                    setUpdatedStatus(value as Appointment["status"])
-                  }
-                  defaultValue={editingAppointment?.status}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="confirmed">Confirmada</SelectItem>
-                    <SelectItem value="scheduled">Pendiente</SelectItem>
-                    <SelectItem value="cancelled">Cancelada</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-notes">Notas Adicionales</Label>
-                <Textarea
-                  id="edit-notes"
-                  value={updatedNotes}
-                  onChange={(e) => setUpdatedNotes(e.target.value)}
-                />
-              </div>
+        <section>
+          <Card className="p-4 flex flex-col md:flex-row items-center gap-4">
+            <div className="relative flex-grow w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por paciente o servicio..."
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
+            <Select onValueChange={setStatusFilter} defaultValue="all">
+              <SelectTrigger className="w-full md:w-[220px]">
+                <SelectValue placeholder="Estado..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los estados</SelectItem>
+                <SelectItem value="confirmed">Confirmadas</SelectItem>
+                <SelectItem value="scheduled">Pendientes</SelectItem>
+                <SelectItem value="cancelled">Cancelada</SelectItem>
+              </SelectContent>
+            </Select>
+          </Card>
+        </section>
+
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <Typography variant="heading-md" className="p-0">
+              Lista de Citas ({filteredAppointments.length})
+            </Typography>
+            <span className="text-xs text-muted-foreground">
+              {filteredAppointments.length} resultado
+              {filteredAppointments.length !== 1 && "s"}
+            </span>
+          </div>
+          <div className="space-y-4">
+            {filteredAppointments.length > 0 ? (
+              filteredAppointments.map((app) => {
+                const statusInfo = getStatusInfo(app.status);
+                return (
+                  <Card
+                    key={app.id}
+                    className="p-4 flex flex-col gap-4 sm:flex-row sm:items-start"
+                  >
+                    <div className="text-center sm:w-20 flex-shrink-0 flex items-center sm:block">
+                      <Typography
+                        variant="body-lg"
+                        className="p-0 font-bold leading-none"
+                      >
+                        {new Date(app.appointment_datetime).toLocaleTimeString(
+                          "es-AR",
+                          {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          }
+                        )}
+                      </Typography>
+                    </div>
+                    <div className="flex-grow space-y-1">
+                      <div className="flex flex-wrap items-center gap-2 mb-1">
+                        <Typography
+                          variant="heading-sm"
+                          className="p-0 leading-none"
+                        >
+                          {app.patients.full_name}
+                        </Typography>
+                        <span
+                          className={`px-2 py-0.5 text-xs font-semibold rounded-full ${statusInfo.color}`}
+                        >
+                          {statusInfo.text}
+                        </span>
+                      </div>
+                      <Typography
+                        variant="body-sm"
+                        className="text-muted-foreground p-0"
+                      >
+                        {app.services.name} • {app.duration_minutes} min •{" "}
+                        {app.patients.phone}
+                      </Typography>
+                      <p className="text-sm mt-2 italic text-muted-foreground">
+                        {app.notes || "Sin notas adicionales."}
+                      </p>
+                    </div>
+                    <div className="flex gap-2 self-end sm:self-start">
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        disabled
+                        title="Próximamente"
+                      >
+                        <Calendar className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        onClick={() => {
+                          setEditingAppointment(app);
+                          setIsEditDialogOpen(true);
+                        }}
+                        title="Editar cita"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="text-red-600"
+                        onClick={() => {
+                          setAppointmentToDelete(app);
+                          setIsDeleteDialogOpen(true);
+                        }}
+                        title="Eliminar cita"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </Card>
+                );
+              })
+            ) : (
+              <Card className="p-8 text-center">
+                <Typography
+                  variant="body-md"
+                  className="text-muted-foreground p-0"
+                >
+                  No hay citas para mostrar con los filtros actuales.
+                </Typography>
+              </Card>
+            )}
+          </div>
+        </section>
+
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Editar Cita</DialogTitle>
+              <DialogDescription>
+                Actualizá el estado o las notas de la cita.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleUpdateAppointment}>
+              <div className="py-4 space-y-4">
+                <div className="space-y-2">
+                  <Label>Estado</Label>
+                  <Select
+                    onValueChange={(value) =>
+                      setUpdatedStatus(value as Appointment["status"])
+                    }
+                    defaultValue={editingAppointment?.status}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="confirmed">Confirmada</SelectItem>
+                      <SelectItem value="scheduled">Pendiente</SelectItem>
+                      <SelectItem value="cancelled">Cancelada</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-notes">Notas Adicionales</Label>
+                  <Textarea
+                    id="edit-notes"
+                    value={updatedNotes}
+                    onChange={(e) => setUpdatedNotes(e.target.value)}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="outline" size="sm">
+                    Cancelar
+                  </Button>
+                </DialogClose>
+                <Button type="submit" size="sm" disabled={isUpdating}>
+                  {isUpdating ? "Guardando..." : "Guardar Cambios"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-x-2">
+                <AlertTriangle className="h-5 w-5 text-red-500" />
+                Confirmar Eliminación
+              </DialogTitle>
+              <DialogDescription>
+                ¿Estás seguro de que querés eliminar esta cita? Esta acción no
+                se puede deshacer.
+              </DialogDescription>
+            </DialogHeader>
             <DialogFooter>
               <DialogClose asChild>
-                <Button>Cancelar</Button>
+                <Button variant="outline" size="sm">
+                  Cancelar
+                </Button>
               </DialogClose>
-              <Button type="submit" disabled={isUpdating}>
-                {isUpdating ? "Guardando..." : "Guardar Cambios"}
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? "Eliminando..." : "Sí, eliminar"}
               </Button>
             </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-x-2">
-              <AlertTriangle className="text-destructive" />
-              Confirmar Eliminación
-            </DialogTitle>
-            <DialogDescription>
-              ¿Estás seguro de que querés eliminar esta cita? Esta acción no se
-              puede deshacer.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button>Cancelar</Button>
-            </DialogClose>
-            <Button onClick={handleConfirmDelete} disabled={isDeleting}>
-              {isDeleting ? "Eliminando..." : "Sí, eliminar"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 }

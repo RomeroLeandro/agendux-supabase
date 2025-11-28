@@ -88,26 +88,30 @@ export function DesignConfig({ userId, config }: DesignConfigProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-8 h-8 bg-pink-100 rounded-lg flex items-center justify-center">
-          <Palette size={20} className="text-pink-600" />
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-2">
+        <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+          <Palette size={20} className="text-primary" />
         </div>
         <div>
-          <Typography variant="heading-lg" className="font-semibold">
-            Diseño de la Página
+          <Typography variant="heading-lg" className="font-semibold p-0">
+            Diseño de la página
           </Typography>
-          <Typography variant="body-sm" className="text-muted-foreground">
-            Personaliza la apariencia de tu página de reservas.
+          <Typography
+            variant="body-sm"
+            className="text-muted-foreground p-0 mt-0.5"
+          >
+            Personalizá la apariencia de tu página de reservas.
           </Typography>
         </div>
       </div>
 
-      <Card className="p-6 space-y-6">
+      <Card className="p-6 space-y-6 border-border/70 shadow-sm">
         {/* Logo Upload */}
-        <div className="space-y-2">
-          <Label>Logo de la empresa</Label>
-          <div className="flex items-center gap-4">
-            <div className="w-24 h-24 rounded-full border bg-muted flex items-center justify-center overflow-hidden">
+        <div className="space-y-3">
+          <Label className="text-sm font-medium">Logo de la empresa</Label>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="w-24 h-24 rounded-xl border border-dashed border-muted flex items-center justify-center overflow-hidden bg-muted/60">
               {logoUrl ? (
                 <Image
                   src={logoUrl}
@@ -119,17 +123,25 @@ export function DesignConfig({ userId, config }: DesignConfigProps) {
               ) : (
                 <Typography
                   variant="body-xs"
-                  className="text-muted-foreground text-center"
+                  className="text-muted-foreground text-center px-2"
                 >
                   Sin logo
                 </Typography>
               )}
             </div>
-            <div>
-              <Button>
-                <label htmlFor="logo-upload">
-                  <Upload className="h-4 w-4 mr-2" />
-                  {uploading ? "Subiendo..." : "Subir imagen"}
+            <div className="flex flex-col gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="relative justify-start"
+              >
+                <label
+                  htmlFor="logo-upload"
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <Upload className="h-4 w-4" />
+                  <span>{uploading ? "Subiendo..." : "Subir imagen"}</span>
                 </label>
               </Button>
               <input
@@ -142,32 +154,41 @@ export function DesignConfig({ userId, config }: DesignConfigProps) {
               />
               <Typography
                 variant="body-xs"
-                className="text-muted-foreground mt-2"
+                className="text-muted-foreground p-0"
               >
-                Recomendado: 200x200px, PNG o JPG.
+                Recomendado: 200x200px, formato PNG o JPG.
               </Typography>
             </div>
           </div>
         </div>
 
         {/* Primary Color */}
-        <div className="space-y-2">
-          <Label htmlFor="primary-color">Color Principal</Label>
-          <div className="flex items-center gap-2">
+        <div className="space-y-3">
+          <Label htmlFor="primary-color" className="text-sm font-medium">
+            Color principal
+          </Label>
+          <div className="flex flex-wrap items-center gap-3">
             <Input
               id="primary-color"
               type="color"
               value={primaryColor}
               onChange={(e) => setPrimaryColor(e.target.value)}
-              className="p-1 h-10 w-14"
+              className="h-10 w-14 p-1 cursor-pointer rounded-md border border-border bg-background"
             />
             <Input
               type="text"
               value={primaryColor}
               onChange={(e) => setPrimaryColor(e.target.value)}
-              className="w-28"
+              className="w-32"
+            />
+            <div
+              className="h-8 w-16 rounded-md border border-border"
+              style={{ backgroundColor: primaryColor }}
             />
           </div>
+          <Typography variant="body-xs" className="text-muted-foreground p-0">
+            Usá un color en formato HEX, por ejemplo: <code>#5A67D8</code>.
+          </Typography>
         </div>
       </Card>
 
@@ -175,9 +196,9 @@ export function DesignConfig({ userId, config }: DesignConfigProps) {
         <Button
           onClick={handleSaveChanges}
           disabled={isSaving}
-          className="bg-purple-600 hover:bg-purple-700"
+          variant="primary"
         >
-          {isSaving ? "Guardando..." : "Guardar Cambios"}
+          {isSaving ? "Guardando..." : "Guardar cambios"}
         </Button>
       </div>
     </div>

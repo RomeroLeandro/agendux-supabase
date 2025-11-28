@@ -152,202 +152,272 @@ export default function ServicesPage() {
   };
 
   return (
-    <div className="p-8 space-y-6">
-      <div className="flex justify-between items-center">
-        <Typography variant="heading-lg">Gestioná tus Servicios</Typography>
-        <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <PlusCircle className="h-4 w-4 mr-2" />
-              Crear Nuevo Servicio
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+    <div className="min-h-screen bg-muted/40">
+      <div className="mx-auto max-w-6xl px-4 sm:px-8 py-6 space-y-6">
+        {/* Header */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <Typography variant="heading-lg" className="p-0">
+              Gestioná tus Servicios
+            </Typography>
+            <Typography
+              variant="body-sm"
+              className="text-muted-foreground p-0 mt-1"
+            >
+              Creá, editá y organizá los servicios que ofrecés a tus pacientes.
+            </Typography>
+          </div>
+
+          <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" variant="primary">
+                <PlusCircle className="h-4 w-4 mr-2" />
+                Crear nuevo servicio
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[460px]">
+              <DialogHeader>
+                <DialogTitle>Crear nuevo servicio</DialogTitle>
+                <DialogDescription>
+                  Añadí un nuevo servicio a tu catálogo.
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleCreateService}>
+                <div className="grid gap-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name-create">Nombre</Label>
+                    <Input
+                      id="name-create"
+                      value={newName}
+                      onChange={(e) => setNewName(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="description-create">Descripción</Label>
+                    <Textarea
+                      id="description-create"
+                      value={newDescription}
+                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                        setNewDescription(e.target.value)
+                      }
+                      placeholder="Detalle brevemente qué incluye este servicio..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="duration-create">Duración (min)</Label>
+                    <Input
+                      id="duration-create"
+                      type="number"
+                      value={newDuration}
+                      onChange={(e) =>
+                        setNewDuration(parseInt(e.target.value, 10))
+                      }
+                      required
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <DialogClose asChild>
+                    <Button size="sm" variant="outline">
+                      Cancelar
+                    </Button>
+                  </DialogClose>
+                  <Button type="submit" size="sm" disabled={isCreating}>
+                    {isCreating ? "Creando..." : "Crear servicio"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {/* Contenido */}
+        <div>
+          {loading ? (
+            <p className="text-sm text-muted-foreground">
+              Cargando servicios...
+            </p>
+          ) : services.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {services.map((service) => (
+                <Card
+                  key={service.id}
+                  className="flex flex-col justify-between border border-border/70 hover:shadow-md transition-shadow"
+                >
+                  <div className="p-5 flex-grow space-y-3">
+                    <div>
+                      <Typography
+                        variant="heading-sm"
+                        className="p-0 pr-4 truncate"
+                      >
+                        {service.name}
+                      </Typography>
+                      <Typography
+                        variant="body-xs"
+                        className="text-muted-foreground p-0 mt-0.5"
+                      >
+                        Duración: {service.duration_minutes} minutos
+                      </Typography>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground line-clamp-3">
+                        {service.description || "Sin descripción agregada."}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-x-2 p-4 pt-3 border-t border-border/70">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setEditingService(service);
+                        setIsEditModalOpen(true);
+                      }}
+                    >
+                      <Pencil className="h-4 w-4 mr-1.5" />
+                      Editar
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="danger"
+                      onClick={() => {
+                        setServiceToDelete(service);
+                        setIsDeleteDialogOpen(true);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4 mr-1.5" />
+                      Eliminar
+                    </Button>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card className="py-12 px-6 text-center border-dashed border-2 border-muted">
+              <Typography
+                variant="heading-sm"
+                className="p-0 mb-2 text-muted-foreground"
+              >
+                Aún no creaste ningún servicio
+              </Typography>
+              <Typography
+                variant="body-sm"
+                className="text-muted-foreground mb-4 p-0"
+              >
+                Empezá creando tu primer servicio para organizar mejor tu
+                agenda.
+              </Typography>
+              <DialogTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="primary"
+                  onClick={() => setIsCreateModalOpen(true)}
+                >
+                  <PlusCircle className="h-4 w-4 mr-2" />
+                  Crear nuevo servicio
+                </Button>
+              </DialogTrigger>
+            </Card>
+          )}
+        </div>
+
+        {/* Modal editar */}
+        <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+          <DialogContent className="sm:max-w-[480px]">
             <DialogHeader>
-              <DialogTitle>Crear Nuevo Servicio</DialogTitle>
+              <DialogTitle>Editar servicio</DialogTitle>
               <DialogDescription>
-                Añadí un nuevo servicio a tu catálogo.
+                Modificá los detalles de tu servicio.
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleCreateService}>
+            <form onSubmit={handleUpdateService}>
               <div className="grid gap-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name-create">Nombre</Label>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-name" className="text-right">
+                    Nombre
+                  </Label>
                   <Input
-                    id="name-create"
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    required
+                    id="edit-name"
+                    value={updatedName}
+                    onChange={(e) => setUpdatedName(e.target.value)}
+                    className="col-span-3"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description-create">Descripción</Label>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-desc" className="text-right">
+                    Descripción
+                  </Label>
                   <Textarea
-                    id="description-create"
-                    value={newDescription}
+                    id="edit-desc"
+                    value={updatedDescription}
                     onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                      setNewDescription(e.target.value)
+                      setUpdatedDescription(e.target.value)
                     }
+                    className="col-span-3"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="duration-create">Duración (min)</Label>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-duration" className="text-right">
+                    Duración (min)
+                  </Label>
                   <Input
-                    id="duration-create"
+                    id="edit-duration"
                     type="number"
-                    value={newDuration}
-                    onChange={(e) => setNewDuration(parseInt(e.target.value))}
-                    required
+                    value={updatedDuration}
+                    onChange={(e) =>
+                      setUpdatedDuration(parseInt(e.target.value, 10))
+                    }
+                    className="col-span-3"
                   />
                 </div>
               </div>
               <DialogFooter>
                 <DialogClose asChild>
-                  <Button>Cancelar</Button>
+                  <Button size="sm" variant="outline">
+                    Cancelar
+                  </Button>
                 </DialogClose>
-                <Button type="submit" disabled={isCreating}>
-                  {isCreating ? "Creando..." : "Crear Servicio"}
+                <Button type="submit" size="sm" disabled={isUpdating}>
+                  {isUpdating ? "Guardando..." : "Guardar cambios"}
                 </Button>
               </DialogFooter>
             </form>
           </DialogContent>
         </Dialog>
-      </div>
-      <div>
-        {loading ? (
-          <p>Cargando servicios...</p>
-        ) : services.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {services.map((service) => (
-              <Card key={service.id} className="flex flex-col">
-                <div className="p-6 flex-grow">
-                  <div className="mb-4">
-                    <Typography variant="heading-sm" className="p-0 pr-2">
-                      {service.name}
-                    </Typography>
-                    <Typography
-                      variant="body-sm"
-                      className="text-muted-foreground"
-                    >
-                      {service.duration_minutes} minutos
-                    </Typography>
-                  </div>
-                  <div className="mb-4">
-                    <p className="text-sm text-muted-foreground h-12 overflow-hidden text-ellipsis">
-                      {service.description}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex justify-end gap-x-2 p-6 pt-4 border-t border-border mt-auto">
-                  <Button
-                    onClick={() => {
-                      setEditingService(service);
-                      setIsEditModalOpen(true);
-                    }}
-                  >
-                    <Pencil className="h-4 w-4 mr-2" />
-                    Editar
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      setServiceToDelete(service);
-                      setIsDeleteDialogOpen(true);
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Eliminar
-                  </Button>
-                </div>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <p className="text-center text-muted-foreground py-12">
-            Aún no has creado ningún servicio. ¡Hacé clic en Crear Nuevo
-            Servicio para empezar!
-          </p>
-        )}
-      </div>
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Editar Servicio</DialogTitle>
-            <DialogDescription>
-              Modificá los detalles de tu servicio.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleUpdateService}>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-name" className="text-right">
-                  Nombre
-                </Label>
-                <Input
-                  id="edit-name"
-                  value={updatedName}
-                  onChange={(e) => setUpdatedName(e.target.value)}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-desc" className="text-right">
-                  Descripción
-                </Label>
-                <Textarea
-                  id="edit-desc"
-                  value={updatedDescription}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                    setUpdatedDescription(e.target.value)
-                  }
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-duration" className="text-right">
-                  Duración (min)
-                </Label>
-                <Input
-                  id="edit-duration"
-                  type="number"
-                  value={updatedDuration}
-                  onChange={(e) => setUpdatedDuration(parseInt(e.target.value))}
-                  className="col-span-3"
-                />
-              </div>
-            </div>
+
+        {/* Modal eliminar */}
+        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-x-2">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+                Confirmar eliminación
+              </DialogTitle>
+              <DialogDescription>
+                ¿Estás seguro de que querés eliminar el servicio{" "}
+                <strong>{serviceToDelete?.name}</strong>? Esta acción no se
+                puede deshacer.
+              </DialogDescription>
+            </DialogHeader>
             <DialogFooter>
               <DialogClose asChild>
-                <Button>Cancelar</Button>
+                <Button size="sm" variant="outline">
+                  Cancelar
+                </Button>
               </DialogClose>
-              <Button type="submit" disabled={isUpdating}>
-                {isUpdating ? "Guardando..." : "Guardar Cambios"}
+              <Button
+                size="sm"
+                variant="danger"
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? "Eliminando..." : "Sí, eliminar"}
               </Button>
             </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-x-2">
-              <AlertTriangle className="text-destructive" />
-              Confirmar Eliminación
-            </DialogTitle>
-            <DialogDescription>
-              ¿Estás seguro de que querés eliminar el servicio{" "}
-              {serviceToDelete?.name}? Esta acción no se puede deshacer.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button>Cancelar</Button>
-            </DialogClose>
-            <Button onClick={handleConfirmDelete} disabled={isDeleting}>
-              {isDeleting ? "Eliminando..." : "Sí, eliminar"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 }

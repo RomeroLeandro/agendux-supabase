@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 interface Profile {
   id?: number;
@@ -63,7 +64,7 @@ export function ProfileSettings({
   console.log("Profile prop:", profile);
   console.log("Current form data:", formData);
   console.log("Component rendered at:", new Date().toISOString());
-  // Cargar datos del perfil cuando el componente se monta
+
   useEffect(() => {
     console.log("=== USEEFFECT TRIGGERED ===");
     console.log("Profile in useEffect:", profile);
@@ -83,7 +84,6 @@ export function ProfileSettings({
     }
   }, [profile]);
 
-  // Cargar email del usuario
   useEffect(() => {
     const getUserEmail = async () => {
       const {
@@ -110,7 +110,6 @@ export function ProfileSettings({
       try {
         console.log("=== SAVING PROFILE (by ID) ===");
 
-        // Si tienes el ID del perfil, úsalo directamente
         if (profile?.id) {
           const { data, error } = await supabase
             .from("profiles")
@@ -139,9 +138,10 @@ export function ProfileSettings({
   };
 
   return (
-    <div>
-      <div className="mb-6">
-        <Typography variant="heading-lg" className="font-semibold mb-2">
+    <div className="space-y-6">
+      {/* encabezado */}
+      <div className="mb-2">
+        <Typography variant="heading-lg" className="font-semibold mb-1">
           Perfil Profesional
         </Typography>
         <Typography variant="body-sm" className="text-muted-foreground">
@@ -149,8 +149,9 @@ export function ProfileSettings({
         </Typography>
       </div>
 
-      <div className="max-w-4xl space-y-6">
-        <div className="grid grid-cols-2 gap-6">
+      <Card className="max-w-4xl p-6 space-y-6">
+        {/* nombre / apellido */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <Label htmlFor="first_name">Nombre</Label>
             <Input
@@ -172,14 +173,15 @@ export function ProfileSettings({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-6">
+        {/* email / teléfono */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               value={userEmail}
               disabled
-              className="bg-gray-50 text-gray-500"
+              className="bg-muted text-muted-foreground"
             />
           </div>
 
@@ -194,13 +196,14 @@ export function ProfileSettings({
           </div>
         </div>
 
+        {/* especialidad */}
         <div className="space-y-2">
           <Label htmlFor="profession">Especialidad</Label>
           <Select
             value={formData.profession_id}
             onValueChange={(value) => handleInputChange("profession_id", value)}
           >
-            <SelectTrigger>
+            <SelectTrigger id="profession">
               <SelectValue placeholder="Seleccionar especialidad..." />
             </SelectTrigger>
             <SelectContent>
@@ -216,16 +219,19 @@ export function ProfileSettings({
           </Select>
         </div>
 
-        <div className="pt-4">
-          <button
+        {/* botón guardar */}
+        <div className="pt-2 flex justify-end">
+          <Button
             onClick={handleSave}
             disabled={isPending}
-            className="px-6 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50"
+            className="min-w-[180px]"
           >
             {isPending ? "Guardando..." : "Guardar Cambios"}
-          </button>
+          </Button>
         </div>
-      </div>
+      </Card>
+
+      {/* diálogo éxito */}
       <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
         <DialogContent>
           <DialogHeader>
@@ -243,7 +249,7 @@ export function ProfileSettings({
           <div className="flex justify-center pt-4">
             <Button
               onClick={() => setShowSuccessDialog(false)}
-              className="bg-purple-600 hover:bg-purple-700"
+              className="min-w-[120px]"
             >
               Aceptar
             </Button>

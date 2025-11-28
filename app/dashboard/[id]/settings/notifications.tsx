@@ -18,25 +18,35 @@ export function Notifications() {
   };
 
   return (
-    <div>
-      <div className="mb-6">
-        <Typography variant="heading-lg" className="font-semibold mb-2">
-          Configuración de Notificaciones
-        </Typography>
+    <div className="space-y-8">
+      {/* Título */}
+      <div>
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-9 h-9 bg-purple-100 rounded-xl flex items-center justify-center">
+            <span className="text-purple-600 text-lg">🔔</span>
+          </div>
+
+          <Typography variant="heading-lg" className="font-semibold">
+            Configuración de Notificaciones
+          </Typography>
+        </div>
+
         <Typography variant="body-sm" className="text-muted-foreground">
-          Elige cómo quieres recibir las notificaciones.
+          Elegí cómo querés recibir tus alertas y recordatorios.
         </Typography>
       </div>
 
-      <div className="space-y-6">
-        <Card className="p-6">
+      {/* Cards */}
+      <div className="space-y-4">
+        {/* EMAIL */}
+        <Card className="p-5 border-border/70 hover:shadow-sm transition">
           <div className="flex items-center justify-between">
             <div>
-              <Typography variant="body-lg" className="font-medium mb-1">
+              <Typography variant="body-lg" className="font-medium">
                 Notificaciones por Email
               </Typography>
               <Typography variant="body-sm" className="text-muted-foreground">
-                Recibir notificaciones en tu email
+                Recibir alertas importantes en tu correo electrónico.
               </Typography>
             </div>
             <Switch
@@ -46,14 +56,15 @@ export function Notifications() {
           </div>
         </Card>
 
-        <Card className="p-6">
+        {/* WHATSAPP */}
+        <Card className="p-5 border-border/70 hover:shadow-sm transition">
           <div className="flex items-center justify-between">
             <div>
-              <Typography variant="body-lg" className="font-medium mb-1">
+              <Typography variant="body-lg" className="font-medium">
                 Notificaciones por WhatsApp
               </Typography>
               <Typography variant="body-sm" className="text-muted-foreground">
-                Recibir notificaciones por WhatsApp
+                Recibir recordatorios directamente en WhatsApp.
               </Typography>
             </div>
             <Switch
@@ -64,10 +75,11 @@ export function Notifications() {
         </Card>
       </div>
 
-      <div className="mt-8">
+      {/* Botón */}
+      <div className="flex justify-end pt-4">
         <Button
           onClick={handleSave}
-          className="bg-purple-600 hover:bg-purple-700"
+          className="bg-purple-600 hover:bg-purple-700 px-6"
         >
           Guardar Configuración
         </Button>

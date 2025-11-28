@@ -280,309 +280,340 @@ export default function NewAppointmentPage() {
 
   if (loading) {
     return (
-      <div className="p-8 text-center text-muted-foreground">Cargando...</div>
+      <div className="min-h-screen flex items-center justify-center text-muted-foreground">
+        Cargando...
+      </div>
     );
   }
 
   return (
-    <div className="p-8">
+    <div className="min-h-screen bg-muted/40">
       <OAuthCallback />
 
-      <div className="mb-6">
-        <Typography variant="heading-lg">Nueva Cita</Typography>
-        <Typography variant="body-md" className="text-muted-foreground">
-          Programa una nueva cita para tu paciente
-        </Typography>
-      </div>
-
-      {/* Estado de Google Calendar con debug */}
-      <Card className="mb-6 p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {isCheckingConnection ? (
-              <>
-                <div className="w-5 h-5 rounded-full border-2 border-gray-300 border-t-blue-600 animate-spin" />
-                <span className="text-sm font-medium text-gray-600">
-                  Verificando conexión...
-                </span>
-              </>
-            ) : googleCalendarConnected ? (
-              <>
-                <Cloud className="h-5 w-5 text-green-600" />
-                <span className="text-sm font-medium text-green-600">
-                  Google Calendar conectado
-                </span>
-              </>
-            ) : (
-              <>
-                <CloudOff className="h-5 w-5 text-orange-600" />
-                <span className="text-sm font-medium text-orange-600">
-                  Google Calendar no conectado
-                </span>
-              </>
-            )}
-          </div>
-
-          {/* Controles y botones de debug */}
-          <div className="flex items-center gap-2">
-            {!googleCalendarConnected && !isCheckingConnection && (
-              <Button onClick={handleConnectGoogleCalendar}>
-                Conectar Google Calendar
-              </Button>
-            )}
-
-            {/* Botones temporales de debug */}
-            <Button
-              onClick={refreshConnection}
-              className="text-xs"
-              disabled={isCheckingConnection}
-            >
-              {isCheckingConnection ? "..." : "Refresh"}
-            </Button>
-
-            <Button onClick={forceCheckConnection} className="text-xs">
-              Force
-            </Button>
-
-            {/* Estado actual para debug */}
-            <span className="text-xs text-gray-400">
-              {googleCalendarConnected ? "ON" : "OFF"}
-            </span>
-          </div>
+      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-10">
+        {/* Título */}
+        <div className="mb-6 sm:mb-8 flex flex-col gap-1">
+          <Typography variant="heading-lg" className="p-0">
+            Nueva Cita
+          </Typography>
+          <Typography variant="body-md" className="text-muted-foreground p-0">
+            Programa una nueva cita para tu paciente
+          </Typography>
         </div>
 
-        <p className="text-xs text-muted-foreground mt-1">
-          {googleCalendarConnected
-            ? "Las citas se sincronizarán automáticamente con tu Google Calendar"
-            : "Conecta tu Google Calendar para sincronizar automáticamente las citas"}
-        </p>
-      </Card>
-
-      {/* Resto del formulario igual que antes */}
-      <form onSubmit={handleCreateAppointment}>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-          <div className="lg:col-span-2 space-y-8">
-            <Card className="p-6">
-              <div className="flex items-center gap-x-3 mb-4">
-                <User className="h-6 w-6 text-primary" />
-                <Typography variant="heading-md" className="p-0">
-                  Información del Paciente
-                </Typography>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="patientName">Nombre Completo *</Label>
-                  <Input
-                    id="patientName"
-                    value={patientName}
-                    onChange={(e) => setPatientName(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="patientPhone">Teléfono (WhatsApp) *</Label>
-                  <Input
-                    id="patientPhone"
-                    type="tel"
-                    value={patientPhone}
-                    onChange={(e) => setPatientPhone(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2 col-span-full">
-                  <Label htmlFor="patientEmail">Email (opcional)</Label>
-                  <Input
-                    id="patientEmail"
-                    type="email"
-                    value={patientEmail}
-                    onChange={(e) => setPatientEmail(e.target.value)}
-                  />
-                </div>
-              </div>
-            </Card>
-
-            <Card className="p-6">
-              <div className="flex items-center gap-x-3 mb-4">
-                <Calendar className="h-6 w-6 text-primary" />
-                <Typography variant="heading-md" className="p-0">
-                  Fecha y Hora
-                </Typography>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="date">Fecha *</Label>
-                  <Input
-                    id="date"
-                    type="date"
-                    value={appointmentDate}
-                    onChange={(e) => setAppointmentDate(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="time">Hora *</Label>
-                  <Input
-                    id="time"
-                    type="time"
-                    value={appointmentTime}
-                    onChange={(e) => setAppointmentTime(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Tipo de Consulta *</Label>
-                  <Select
-                    onValueChange={setSelectedServiceId}
-                    value={selectedServiceId}
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar servicio..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {services.map((service) => (
-                        <SelectItem key={service.id} value={String(service.id)}>
-                          {service.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Duración (minutos)</Label>
-                  <Input
-                    value={selectedService?.duration_minutes || ""}
-                    readOnly
-                    disabled
-                  />
-                </div>
-              </div>
-            </Card>
-
-            <Card className="p-6">
-              <div className="flex items-center gap-x-3 mb-4">
-                <Edit className="h-6 w-6 text-primary" />
-                <Typography variant="heading-md" className="p-0">
-                  Notas Adicionales
-                </Typography>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="notes">Notas (opcional)</Label>
-                <Textarea
-                  id="notes"
-                  value={notes}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                    setNotes(e.target.value)
-                  }
-                  placeholder="Motivo de la consulta, síntomas, o cualquier información relevante..."
-                />
-              </div>
-            </Card>
-          </div>
-
-          <div className="lg:col-span-1 space-y-6 sticky top-8">
-            <Card className="p-6">
-              <Typography variant="heading-md" className="mb-4 p-0">
-                Resumen de la Cita
-              </Typography>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Paciente:</span>
-                  <span className="font-medium text-right">
-                    {patientName || "Sin especificar"}
+        {/* Estado Google Calendar */}
+        <Card className="mb-6 p-4 sm:p-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2">
+              {isCheckingConnection ? (
+                <>
+                  <div className="w-5 h-5 rounded-full border-2 border-gray-300 border-t-blue-600 animate-spin" />
+                  <span className="text-sm font-medium text-gray-600">
+                    Verificando conexión...
                   </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Fecha:</span>
-                  <span className="font-medium">
-                    {appointmentDate
-                      ? new Date(
-                          appointmentDate + "T00:00:00"
-                        ).toLocaleDateString("es-ES")
-                      : "Sin especificar"}
+                </>
+              ) : googleCalendarConnected ? (
+                <>
+                  <Cloud className="h-5 w-5 text-green-600" />
+                  <span className="text-sm font-medium text-green-600">
+                    Google Calendar conectado
                   </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Hora:</span>
-                  <span className="font-medium">
-                    {appointmentTime || "Sin especificar"}
+                </>
+              ) : (
+                <>
+                  <CloudOff className="h-5 w-5 text-orange-600" />
+                  <span className="text-sm font-medium text-orange-600">
+                    Google Calendar no conectado
                   </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Servicio:</span>
-                  <span className="font-medium text-right">
-                    {selectedService?.name || "Sin especificar"}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Duración:</span>
-                  <span className="font-medium">
-                    {selectedService
-                      ? `${selectedService.duration_minutes} min`
-                      : "Sin especificar"}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center pt-2 border-t">
-                  <span className="text-muted-foreground">Sincronización:</span>
-                  <div className="flex items-center gap-1">
-                    {googleCalendarConnected ? (
-                      <>
-                        <Cloud className="h-3 w-3 text-green-600" />
-                        <span className="text-xs text-green-600">
-                          Automática
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <CloudOff className="h-3 w-3 text-orange-600" />
-                        <span className="text-xs text-orange-600">Manual</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </Card>
+                </>
+              )}
+            </div>
 
-            <Card className="p-6">
-              <Typography variant="heading-md" className="mb-4 p-0">
-                Configuración
-              </Typography>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="reminder" className="flex flex-col">
-                  <span>Enviar recordatorio</span>
-                  <span className="text-xs text-muted-foreground">
-                    24h antes por WhatsApp
-                  </span>
-                </Label>
-                <input
-                  type="checkbox"
-                  id="reminder"
-                  checked={sendReminder}
-                  onChange={(e) => setSendReminder(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                />
-              </div>
-            </Card>
+            <div className="flex flex-wrap items-center gap-2 justify-end sm:justify-start">
+              {!googleCalendarConnected && !isCheckingConnection && (
+                <Button size="sm" onClick={handleConnectGoogleCalendar}>
+                  Conectar Google Calendar
+                </Button>
+              )}
 
-            <div className="space-y-2">
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting
-                  ? googleCalendarConnected
-                    ? "Creando y sincronizando..."
-                    : "Creando cita..."
-                  : "Crear Cita"}
-              </Button>
+              {/* Botones temporales de debug */}
               <Button
-                type="button"
-                className="w-full"
-                onClick={() => router.back()}
+                size="sm"
+                variant="outline"
+                onClick={refreshConnection}
+                disabled={isCheckingConnection}
+                className="text-xs"
               >
-                Cancelar
+                {isCheckingConnection ? "..." : "Refresh"}
               </Button>
+
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={forceCheckConnection}
+                className="text-xs"
+              >
+                Force
+              </Button>
+
+              <span className="text-xs text-gray-400">
+                Estado: {googleCalendarConnected ? "ON" : "OFF"}
+              </span>
             </div>
           </div>
-        </div>
-      </form>
+
+          <p className="text-xs text-muted-foreground mt-2">
+            {googleCalendarConnected
+              ? "Las citas se sincronizarán automáticamente con tu Google Calendar."
+              : "Conecta tu Google Calendar para sincronizar automáticamente las citas."}
+          </p>
+        </Card>
+
+        {/* Formulario */}
+        <form onSubmit={handleCreateAppointment}>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start">
+            {/* Columna izquierda: formulario principal */}
+            <div className="lg:col-span-2 space-y-6 lg:space-y-8">
+              <Card className="p-5 sm:p-6">
+                <div className="flex items-center gap-x-3 mb-4">
+                  <User className="h-6 w-6 text-primary" />
+                  <Typography variant="heading-md" className="p-0">
+                    Información del Paciente
+                  </Typography>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="patientName">Nombre Completo *</Label>
+                    <Input
+                      id="patientName"
+                      value={patientName}
+                      onChange={(e) => setPatientName(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="patientPhone">Teléfono (WhatsApp) *</Label>
+                    <Input
+                      id="patientPhone"
+                      type="tel"
+                      value={patientPhone}
+                      onChange={(e) => setPatientPhone(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="patientEmail">Email (opcional)</Label>
+                    <Input
+                      id="patientEmail"
+                      type="email"
+                      value={patientEmail}
+                      onChange={(e) => setPatientEmail(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-5 sm:p-6">
+                <div className="flex items-center gap-x-3 mb-4">
+                  <Calendar className="h-6 w-6 text-primary" />
+                  <Typography variant="heading-md" className="p-0">
+                    Fecha y Hora
+                  </Typography>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="date">Fecha *</Label>
+                    <Input
+                      id="date"
+                      type="date"
+                      value={appointmentDate}
+                      onChange={(e) => setAppointmentDate(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="time">Hora *</Label>
+                    <Input
+                      id="time"
+                      type="time"
+                      value={appointmentTime}
+                      onChange={(e) => setAppointmentTime(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Tipo de Consulta *</Label>
+                    <Select
+                      onValueChange={setSelectedServiceId}
+                      value={selectedServiceId}
+                      required
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar servicio..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {services.map((service) => (
+                          <SelectItem
+                            key={service.id}
+                            value={String(service.id)}
+                          >
+                            {service.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Duración (minutos)</Label>
+                    <Input
+                      value={
+                        selectedService?.duration_minutes
+                          ? `${selectedService.duration_minutes} min`
+                          : ""
+                      }
+                      readOnly
+                      disabled
+                    />
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-5 sm:p-6">
+                <div className="flex items-center gap-x-3 mb-4">
+                  <Edit className="h-6 w-6 text-primary" />
+                  <Typography variant="heading-md" className="p-0">
+                    Notas Adicionales
+                  </Typography>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="notes">Notas (opcional)</Label>
+                  <Textarea
+                    id="notes"
+                    value={notes}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                      setNotes(e.target.value)
+                    }
+                    placeholder="Motivo de la consulta, síntomas, o cualquier información relevante..."
+                    rows={4}
+                  />
+                </div>
+              </Card>
+            </div>
+
+            {/* Columna derecha: resumen y configuración */}
+            <div className="lg:col-span-1 space-y-4 lg:space-y-6 mt-6 lg:mt-0 lg:sticky lg:top-8">
+              <Card className="p-5 sm:p-6">
+                <Typography variant="heading-md" className="mb-4 p-0">
+                  Resumen de la Cita
+                </Typography>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between gap-2">
+                    <span className="text-muted-foreground">Paciente:</span>
+                    <span className="font-medium text-right">
+                      {patientName || "Sin especificar"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between gap-2">
+                    <span className="text-muted-foreground">Fecha:</span>
+                    <span className="font-medium text-right">
+                      {appointmentDate
+                        ? new Date(
+                            appointmentDate + "T00:00:00"
+                          ).toLocaleDateString("es-ES")
+                        : "Sin especificar"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between gap-2">
+                    <span className="text-muted-foreground">Hora:</span>
+                    <span className="font-medium text-right">
+                      {appointmentTime || "Sin especificar"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between gap-2">
+                    <span className="text-muted-foreground">Servicio:</span>
+                    <span className="font-medium text-right">
+                      {selectedService?.name || "Sin especificar"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between gap-2">
+                    <span className="text-muted-foreground">Duración:</span>
+                    <span className="font-medium text-right">
+                      {selectedService
+                        ? `${selectedService.duration_minutes} min`
+                        : "Sin especificar"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center pt-3 mt-2 border-t">
+                    <span className="text-muted-foreground">
+                      Sincronización:
+                    </span>
+                    <div className="flex items-center gap-1">
+                      {googleCalendarConnected ? (
+                        <>
+                          <Cloud className="h-3 w-3 text-green-600" />
+                          <span className="text-xs text-green-600">
+                            Automática
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <CloudOff className="h-3 w-3 text-orange-600" />
+                          <span className="text-xs text-orange-600">
+                            Manual
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-5 sm:p-6">
+                <Typography variant="heading-md" className="mb-4 p-0">
+                  Configuración
+                </Typography>
+                <div className="flex items-center justify-between gap-3">
+                  <Label htmlFor="reminder" className="flex flex-col gap-0.5">
+                    <span>Enviar recordatorio</span>
+                    <span className="text-xs text-muted-foreground">
+                      24h antes por WhatsApp
+                    </span>
+                  </Label>
+                  <input
+                    type="checkbox"
+                    id="reminder"
+                    checked={sendReminder}
+                    onChange={(e) => setSendReminder(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                </div>
+              </Card>
+
+              <div className="space-y-2">
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting
+                    ? googleCalendarConnected
+                      ? "Creando y sincronizando..."
+                      : "Creando cita..."
+                    : "Crear Cita"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => router.back()}
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
 
       <Dialog open={isSuccessDialogOpen} onOpenChange={setIsSuccessDialogOpen}>
         <DialogContent>

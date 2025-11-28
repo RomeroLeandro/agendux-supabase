@@ -58,7 +58,7 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen flex bg-muted">
       <Aside
         user={user}
         professional={professional}

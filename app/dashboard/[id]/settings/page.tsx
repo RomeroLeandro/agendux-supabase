@@ -6,11 +6,10 @@ import { ArrowLeft } from "lucide-react";
 import { SettingsContent } from "./settings-content";
 
 interface PageProps {
-  params: Promise<{ id: string }>; // Cambiar el tipo aquí
+  params: Promise<{ id: string }>;
 }
 
 export default async function SettingsPage({ params }: PageProps) {
-  // Await params para obtener el id
   const { id } = await params;
 
   const supabase = await createClient();
@@ -29,7 +28,6 @@ export default async function SettingsPage({ params }: PageProps) {
     redirect("/auth/login");
   }
 
-  // Obtener perfil del usuario usando el ID directamente
   const { data: profile } = await supabase
     .from("profiles")
     .select(
@@ -41,28 +39,21 @@ export default async function SettingsPage({ params }: PageProps) {
     .eq("id", user.id)
     .single();
 
-  // Obtener todas las profesiones
   const { data: professions } = await supabase
     .from("professions")
     .select("id, category, name")
     .order("category", { ascending: true });
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-4">
-          <Button className="p-2">
-            <ArrowLeft className="h-4 w-4" />
-            <span className="ml-2 text-sm">Volver</span>
-          </Button>
-          <div>
-            <Typography variant="heading-xl" className="font-semibold">
-              Configuración
-            </Typography>
-            <Typography variant="body-sm" className="text-muted-foreground">
-              Personaliza tu perfil y configuraciones de mensajes automáticos
-            </Typography>
-          </div>
+    <div className="p-6 md:p-8 space-y-8">
+      <div className="flex items-center gap-4 flex-col">
+        <div>
+          <Typography variant="heading-xl" className="font-semibold">
+            Configuración
+          </Typography>
+          <Typography variant="body-sm" className="text-muted-foreground">
+            Personaliza tu perfil y configuraciones de mensajes automáticos
+          </Typography>
         </div>
       </div>
 

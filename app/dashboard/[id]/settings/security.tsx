@@ -79,7 +79,6 @@ export function Security() {
       const result = await response.json();
 
       if (response.ok) {
-        // Cerrar sesión y redirigir
         await supabase.auth.signOut();
         router.push("/");
         alert("Tu cuenta ha sido eliminada exitosamente");
@@ -98,96 +97,118 @@ export function Security() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10 max-w-3xl">
       {/* Cambiar Contraseña */}
-      <div>
-        <Typography variant="heading-lg" className="font-semibold mb-2">
-          Cambiar Contraseña
-        </Typography>
-        <Typography variant="body-sm" className="text-muted-foreground mb-6">
-          Para tu seguridad, te recomendamos usar una contraseña segura.
-        </Typography>
+      <section className="space-y-3">
+        <div>
+          <Typography variant="heading-lg" className="font-semibold mb-1">
+            Seguridad
+          </Typography>
+          <Typography variant="body-sm" className="text-muted-foreground">
+            Gestiona tu contraseña y la eliminación de tu cuenta.
+          </Typography>
+        </div>
 
-        <form onSubmit={handlePasswordUpdate} className="space-y-4 max-w-md">
-          <div className="space-y-2">
-            <Label htmlFor="current-password">Contraseña Actual</Label>
-            <Input
-              id="current-password"
-              type="password"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              required
-            />
+        <Card className="p-6 space-y-6">
+          <div className="space-y-1">
+            <Typography variant="heading-sm" className="font-medium">
+              Cambiar contraseña
+            </Typography>
+            <Typography variant="body-sm" className="text-muted-foreground">
+              Para tu seguridad, te recomendamos usar una contraseña segura.
+            </Typography>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="new-password">Nueva Contraseña</Label>
-            <Input
-              id="new-password"
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              required
-              minLength={6}
-            />
-          </div>
+          <form onSubmit={handlePasswordUpdate} className="space-y-4 max-w-md">
+            <div className="space-y-2">
+              <Label htmlFor="current-password">Contraseña actual</Label>
+              <Input
+                id="current-password"
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                required
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="confirm-password">Confirmar Nueva Contraseña</Label>
-            <Input
-              id="confirm-password"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              minLength={6}
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-password">Nueva contraseña</Label>
+              <Input
+                id="new-password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+                minLength={6}
+              />
+            </div>
 
-          <Button
-            type="submit"
-            disabled={isUpdatingPassword}
-            className="bg-purple-600 hover:bg-purple-700"
-          >
-            {isUpdatingPassword ? "Actualizando..." : "Actualizar Contraseña"}
-          </Button>
-        </form>
-      </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm-password">
+                Confirmar nueva contraseña
+              </Label>
+              <Input
+                id="confirm-password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                minLength={6}
+              />
+            </div>
+
+            <Button
+              type="submit"
+              disabled={isUpdatingPassword}
+              className="bg-purple-600 hover:bg-purple-700 min-w-[210px]"
+            >
+              {isUpdatingPassword ? "Actualizando..." : "Actualizar contraseña"}
+            </Button>
+          </form>
+        </Card>
+      </section>
 
       {/* Opciones de Seguridad */}
-      <div>
-        <Typography variant="heading-lg" className="font-semibold mb-2">
-          Opciones de Seguridad
-        </Typography>
-        <Typography variant="body-sm" className="text-muted-foreground mb-6">
-          Configuraciones adicionales de seguridad para tu cuenta.
-        </Typography>
+      <section className="space-y-4">
+        <div>
+          <Typography variant="heading-sm" className="font-semibold mb-1">
+            Opciones de seguridad avanzada
+          </Typography>
+          <Typography variant="body-sm" className="text-muted-foreground">
+            Configuraciones adicionales de seguridad para tu cuenta.
+          </Typography>
+        </div>
 
-        <div className="space-y-4">
-          <Card className="p-4 border-red-200">
-            <div className="flex items-center justify-between">
-              <div>
+        <Card className="p-5 border-red-200 bg-red-50/60">
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-red-600" />
                 <Typography
                   variant="body-md"
-                  className="font-medium text-red-600"
+                  className="font-semibold text-red-700"
                 >
-                  Eliminar Cuenta
-                </Typography>
-                <Typography variant="body-sm" className="text-muted-foreground">
-                  Esta acción no se puede deshacer. Se eliminarán todos tus
-                  datos.
+                  Eliminar cuenta
                 </Typography>
               </div>
-              <Button
-                onClick={() => setShowDeleteDialog(true)}
-                className="border-red-600 text-red-600 hover:bg-red-50"
+              <Typography
+                variant="body-sm"
+                className="text-sm text-red-700/90 mt-1"
               >
-                Eliminar
-              </Button>
+                Esta acción no se puede deshacer. Se eliminarán todos tus datos
+                y no podrás recuperarlos.
+              </Typography>
             </div>
-          </Card>
-        </div>
-      </div>
+            <Button
+              onClick={() => setShowDeleteDialog(true)}
+              className="border border-red-500 text-red-600 bg-white hover:bg-red-50"
+              variant="outline"
+            >
+              Eliminar cuenta
+            </Button>
+          </div>
+        </Card>
+      </section>
 
       {/* Dialog de confirmación para eliminar cuenta */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
@@ -196,7 +217,7 @@ export function Security() {
             <div className="flex items-center gap-2 mb-2">
               <AlertTriangle className="h-6 w-6 text-red-600" />
               <DialogTitle className="text-red-600">
-                Eliminar Cuenta Permanentemente
+                Eliminar cuenta permanentemente
               </DialogTitle>
             </div>
             <DialogDescription>
@@ -223,31 +244,36 @@ export function Security() {
 
             <div className="space-y-2">
               <Label htmlFor="confirmation">
-                Para confirmar, escribe <strong>ELIMINAR</strong> en mayúsculas:
+                Para confirmar, escribe{" "}
+                <span className="font-semibold text-red-600">ELIMINAR</span> en
+                mayúsculas:
               </Label>
               <Input
                 id="confirmation"
                 value={confirmationText}
                 onChange={(e) => setConfirmationText(e.target.value)}
                 placeholder="Escribe ELIMINAR"
-                className="border-red-300 focus:border-red-500"
+                className="border-red-300 focus-visible:ring-red-500"
               />
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button
               onClick={() => {
                 setShowDeleteDialog(false);
                 setConfirmationText("");
               }}
               disabled={isDeleting}
+              variant="outline"
+              className="w-full sm:w-auto"
             >
               Cancelar
             </Button>
             <Button
               onClick={handleDeleteAccount}
               disabled={isDeleting || confirmationText !== "ELIMINAR"}
+              className="w-full sm:w-auto bg-red-600 hover:bg-red-700"
             >
               {isDeleting ? "Eliminando cuenta..." : "Eliminar mi cuenta"}
             </Button>

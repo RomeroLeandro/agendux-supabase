@@ -1,3 +1,4 @@
+// components/landing/pricing/pricing-card.tsx
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Typography } from "@/components/ui/typography";
@@ -10,9 +11,21 @@ type Plan = Database["public"]["Tables"]["plans"]["Row"];
 interface PricingCardProps {
   plan: Plan;
   billingCycle: "monthly" | "annually";
+  /** Para poder reutilizar la card en el dashboard */
+  showCta?: boolean;
+  ctaLabel?: string;
+  onCtaClick?: () => void;
+  ctaDisabled?: boolean;
 }
 
-export function PricingCard({ plan, billingCycle }: PricingCardProps) {
+export function PricingCard({
+  plan,
+  billingCycle,
+  showCta = true,
+  ctaLabel = "Empieza gratis",
+  onCtaClick,
+  ctaDisabled = false,
+}: PricingCardProps) {
   const isFeatured = plan.is_featured;
   const price =
     billingCycle === "monthly" ? plan.price_monthly : plan.price_annual;
@@ -21,7 +34,7 @@ export function PricingCard({ plan, billingCycle }: PricingCardProps) {
   return (
     <Card
       variant={isFeatured ? "featured" : "default"}
-      className="flex flex-col p-8"
+      className="flex flex-col p-8 h-full"
     >
       <Typography
         as="h3"
@@ -58,6 +71,7 @@ export function PricingCard({ plan, billingCycle }: PricingCardProps) {
           </li>
         ))}
       </ul>
+
       <Typography
         as="span"
         variant="body-sm"
@@ -66,9 +80,23 @@ export function PricingCard({ plan, billingCycle }: PricingCardProps) {
         Costo por recordatorio excedente: USD {plan.cost_per_extra_reminder}
       </Typography>
 
-      <Link href="/auth/login" className="mt-auto">
-        <Button className="w-full">Empieza gratis</Button>
-      </Link>
+      {showCta && (
+        <>
+          {onCtaClick ? (
+            <Button
+              className="w-full mt-auto"
+              onClick={onCtaClick}
+              disabled={ctaDisabled}
+            >
+              {ctaLabel}
+            </Button>
+          ) : (
+            <Link href="/auth/login" className="mt-auto">
+              <Button className="w-full">{ctaLabel}</Button>
+            </Link>
+          )}
+        </>
+      )}
     </Card>
   );
 }
