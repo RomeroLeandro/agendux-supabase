@@ -84,7 +84,7 @@
 //     let template: string | null = null;
 
 //     switch (message_type) {
-//       case "confirmation":
+export {}; //       case "confirmation":
 //         template = settings.confirmation_template;
 //         break;
 //       case "reminder_1":
